@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categories</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Categories</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="categories-table">
+                <!-- Categories will be populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Fetch categories from the API
+        fetch('https://localhost:7221/api/categories')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                const categoriesTable = document.getElementById('categories-table');
+
+                data.forEach(category => {
+                    const row = document.createElement('tr');
+
+                    const nameCell = document.createElement('td');
+                    nameCell.textContent = category.name;
+                    row.appendChild(nameCell);
+
+                    const descriptionCell = document.createElement('td');
+                    descriptionCell.textContent = category.description;
+                    row.appendChild(descriptionCell);
+
+                    const actionsCell = document.createElement('td');
+                    actionsCell.innerHTML = `
+                        <a href="editCategory.html?id=${category.id}" class="btn btn-warning btn-sm">Edit</a> | 
+                        <span>Delete</span>
+                    `;
+                    row.appendChild(actionsCell);
+
+                    categoriesTable.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching categories:', error);
+            });
+    </script>
+</body>
+</html>
