@@ -11,6 +11,7 @@ namespace MiniMart.Data
 
         // 定义 DbSet 属性以对应数据库中的表
         public DbSet<Category> Categories { get; set; }
+        public DbSet<Product> Products { get; set; }
 
         // 如果需要额外的模型配置，可以在此方法中完成
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -18,7 +19,7 @@ namespace MiniMart.Data
             base.OnModelCreating(modelBuilder);
 
             // 示例：设置表名为单数形式
-            modelBuilder.Entity<Category>().ToTable("Category");
+            //modelBuilder.Entity<Category>().ToTable("Category");
 
             // 添加其他模型的约束或关系配置
         }
