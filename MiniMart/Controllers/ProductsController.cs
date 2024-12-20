@@ -56,6 +56,15 @@ namespace MiniMart.Controllers
             {
                 return BadRequest();
             }
+            // 通过 CategoryId 查找对应的 Category
+            var category = await _context.Categories.FindAsync(product.CategoryId);
+            if (category == null)
+            {
+                return NotFound("Category not found.");
+            }
+
+            // 确保 product 的 Category 被赋值
+            product.Category = category;
             await _context.Products.AddAsync(product);
             _context.SaveChanges();
             return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
@@ -75,6 +84,18 @@ namespace MiniMart.Controllers
             prod.CategoryId = product.CategoryId;
             prod.Price = product.Price;
             prod.QuantityInStock = product.QuantityInStock;
+
+            // 更新 Category
+            if (prod.CategoryId != product.CategoryId)
+            {
+                var category = await _context.Categories.FindAsync(product.CategoryId);
+                if (category == null)
+                {
+                    return NotFound("Category not found.");
+                }
+
+                prod.Category = category;
+            }
             // 保存更改到数据库
             try
             {

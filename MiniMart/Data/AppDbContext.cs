@@ -22,6 +22,13 @@ namespace MiniMart.Data
             //modelBuilder.Entity<Category>().ToTable("Category");
 
             // 添加其他模型的约束或关系配置
+
+            // 配置 Product 和 Category 的关系
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.Category) // 通过导航属性配置多对一关系
+                .WithMany(c => c.Products) // Category 拥有多个 Product
+                .HasForeignKey(p => p.CategoryId) // 外键是 CategoryId
+                .OnDelete(DeleteBehavior.Restrict); // 设置删除行为为 Restrict
         }
     }
 }
