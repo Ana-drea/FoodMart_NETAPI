@@ -42,6 +42,10 @@ namespace MiniMart.Controllers
             {
                 return BadRequest();
             }
+            if (!ModelState.IsValid) // 验证模型是否有效
+            {
+                return BadRequest(ModelState);
+            }
             await _context.Categories.AddAsync(category);
             _context.SaveChanges();
             return CreatedAtAction(nameof(GetById), new { id = category.Id },category);
