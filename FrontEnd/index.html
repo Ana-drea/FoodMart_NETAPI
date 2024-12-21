@@ -397,56 +397,14 @@
           <div class="col-md-12">
 
             <div class="category-carousel swiper">
-              <div class="swiper-wrapper">
+              <div class="swiper-wrapper" id="category-container">
+                <!--
                 <a href="index.html" class="nav-link category-item swiper-slide">
                   <img src="images/icon-vegetables-broccoli.png" alt="Category Thumbnail">
                   <h3 class="category-title">Fruits & Veges</h3>
                 </a>
-                <a href="index.html" class="nav-link category-item swiper-slide">
-                  <img src="images/icon-bread-baguette.png" alt="Category Thumbnail">
-                  <h3 class="category-title">Breads & Sweets</h3>
-                </a>
-                <a href="index.html" class="nav-link category-item swiper-slide">
-                  <img src="images/icon-soft-drinks-bottle.png" alt="Category Thumbnail">
-                  <h3 class="category-title">Fruits & Veges</h3>
-                </a>
-                <a href="index.html" class="nav-link category-item swiper-slide">
-                  <img src="images/icon-wine-glass-bottle.png" alt="Category Thumbnail">
-                  <h3 class="category-title">Fruits & Veges</h3>
-                </a>
-                <a href="index.html" class="nav-link category-item swiper-slide">
-                  <img src="images/icon-animal-products-drumsticks.png" alt="Category Thumbnail">
-                  <h3 class="category-title">Fruits & Veges</h3>
-                </a>
-                <a href="index.html" class="nav-link category-item swiper-slide">
-                  <img src="images/icon-bread-herb-flour.png" alt="Category Thumbnail">
-                  <h3 class="category-title">Fruits & Veges</h3>
-                </a>
-                <a href="index.html" class="nav-link category-item swiper-slide">
-                  <img src="images/icon-vegetables-broccoli.png" alt="Category Thumbnail">
-                  <h3 class="category-title">Fruits & Veges</h3>
-                </a>
-                <a href="index.html" class="nav-link category-item swiper-slide">
-                  <img src="images/icon-vegetables-broccoli.png" alt="Category Thumbnail">
-                  <h3 class="category-title">Fruits & Veges</h3>
-                </a>
-                <a href="index.html" class="nav-link category-item swiper-slide">
-                  <img src="images/icon-vegetables-broccoli.png" alt="Category Thumbnail">
-                  <h3 class="category-title">Fruits & Veges</h3>
-                </a>
-                <a href="index.html" class="nav-link category-item swiper-slide">
-                  <img src="images/icon-vegetables-broccoli.png" alt="Category Thumbnail">
-                  <h3 class="category-title">Fruits & Veges</h3>
-                </a>
-                <a href="index.html" class="nav-link category-item swiper-slide">
-                  <img src="images/icon-vegetables-broccoli.png" alt="Category Thumbnail">
-                  <h3 class="category-title">Fruits & Veges</h3>
-                </a>
-                <a href="index.html" class="nav-link category-item swiper-slide">
-                  <img src="images/icon-vegetables-broccoli.png" alt="Category Thumbnail">
-                  <h3 class="category-title">Fruits & Veges</h3>
-                </a>
-                
+                -->
+                <!-- Dynamically populated categories will go here -->
               </div>
             </div>
 
@@ -592,10 +550,11 @@
               <div class="tabs-header d-flex justify-content-between border-bottom my-5">
                 <h3>Trending Products</h3>
                 <nav>
-                  <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                  <div class="nav nav-tabs" id="nav-tab" role="tablist" name="category-nav-tab">
                     <a href="#" class="nav-link text-uppercase fs-6 active" id="nav-all-tab" data-bs-toggle="tab" data-bs-target="#nav-all">All</a>
                     <a href="#" class="nav-link text-uppercase fs-6" id="nav-fruits-tab" data-bs-toggle="tab" data-bs-target="#nav-fruits">Fruits & Veges</a>
                     <a href="#" class="nav-link text-uppercase fs-6" id="nav-juices-tab" data-bs-toggle="tab" data-bs-target="#nav-juices">Juices</a>
+                    <!-- Dynamically populated categories will go here -->
                   </div>
                 </nav>
               </div>
@@ -2484,6 +2443,8 @@
           })
           .then(data => {
               console.log('Categories fetched:', data); // 打印返回的类别数据
+
+               // **逻辑 1：填充下拉菜单**
               // Find the select element
               const selectElement = document.getElementById('categories-select');
               // Loop through the fetched categories and add them as options
@@ -2493,6 +2454,35 @@
                   option.textContent = category.name; // Set the display text as category name
                   selectElement.appendChild(option);
               });
+
+              // **逻辑 2：填充类别轮播图**
+              const categoryContainer = document.getElementById('category-container');
+              if (categoryContainer) {
+              // 清空现有内容
+              // categoryContainer.innerHTML = '';
+
+                data.forEach(category => {
+                const categoryItem = document.createElement('a');
+                categoryItem.href = `index.html?categoryId=${category.id}`;
+                categoryItem.className = 'nav-link category-item swiper-slide';
+                categoryItem.innerHTML = `
+                <img src="${category.thumbnailUrl || 'images/icon-vegetables-broccoli.png'}" alt="${category.name} Thumbnail">
+                <h3 class="category-title">${category.name}</h3>
+                `;
+                categoryContainer.appendChild(categoryItem);
+              });
+
+              // 重新初始化 Swiper（如果使用了 Swiper 插件）
+              if (typeof Swiper !== 'undefined') {
+                new Swiper('.category-carousel', {
+                  slidesPerView: 'auto',
+                  spaceBetween: 20,
+                  freeMode: true,
+                });
+              }
+
+              // **逻辑 3：填充类别nav
+            }
           })
           .catch(error => {
               console.error('Error fetching categories:', error);
