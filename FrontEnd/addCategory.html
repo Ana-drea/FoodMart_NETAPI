@@ -10,7 +10,7 @@
 <body>
     <div class="container mt-5">
         <h2>Add Category</h2>
-        <form id="editCategoryForm">
+        <form id="addCategoryForm">
             <div class="form-group">
                 <label for="Name">Name</label>
                 <input type="text" class="form-control" id="Name" name="Name" />
@@ -27,20 +27,17 @@
 
     <script>
         $(document).ready(function() {
-            // 从 URL 获取 categoryId
-            const urlParams = new URLSearchParams(window.location.search);
-
-            $('#editCategoryForm').on('submit', function(e) {
+            $('#addCategoryForm').on('submit', function(e) {
                 e.preventDefault(); // 防止默认的表单提交
 
                 var categoryData = {
-                    // Id: categoryId,  // add 页面无 categoryId
+                    // add 页面url无 categoryId
                     Name: $('#Name').val(),
                     Description: $('#Description').val()
                 };
 
                 $.ajax({
-                    url: 'https://localhost:7221/api/categories',  // 使用 categoryId
+                    url: 'https://localhost:7221/api/categories',
                     type: 'POST',  // 使用 POST 请求进行编辑操作
                     contentType: 'application/json',
                     data: JSON.stringify(categoryData),

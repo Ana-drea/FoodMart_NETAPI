@@ -40,7 +40,8 @@
                     const row = document.createElement('tr');
 
                     const nameCell = document.createElement('td');
-                    nameCell.textContent = category.name;
+                    //nameCell.textContent = category.name;
+                    nameCell.innerHTML = `<a href="product.html?categoryId=${category.id}" class="category-link">${category.name}</a>`;
                     row.appendChild(nameCell);
 
                     const descriptionCell = document.createElement('td');
