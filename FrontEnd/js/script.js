@@ -139,6 +139,34 @@
     });
   }
 
+    // 上传图片函数
+    window.uploadImage = async function(e, imageUrlElement, imageDisplayElement) {
+      let data = new FormData();
+      data.append('file', e.target.files[0]);
+  
+      await fetch('https://localhost:7221/api/images', {
+          method: 'POST',
+          headers: {
+            'Accept': '*/*',
+          },
+          body: data
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(result => {
+          imageUrlElement.value = result.link;
+          imageDisplayElement.src = result.link;
+          imageDisplayElement.style.display = 'block';
+        })
+        .catch(error => {
+          console.error('Error uploading image:', error);
+        });
+    }
+
   // document ready
   $(document).ready(function() {
     

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
 </head>
+
 <body>
     <div class="container mt-5">
         <h2>Edit Product</h2>
@@ -33,13 +35,30 @@
                 <input class="form-control" type="number" id="Quantity" name="Quantity" step="1" min="0" />
                 <!-- step="1" 保证用户只能输入整数，min="0" 限制库存不能为负数 -->
             </div>
+            <div class="form-group">
+                <label for="ImageUpload">Change Image</label>
+                <br />
+                <img src="" id="ImageDisplay" style="width: 200px;" />
+                <input type="file" class="form-control" id="ImageUpload" name="ImageUpload" />
+            </div>
+            <div class="form-group" >
+                <label for="ImageUrl">Image URL</label>
+                <input type="text" class="form-control" id="ImageUrl" name="ImageUrl" />
+            </div>
             <button type="submit" class="btn btn-primary">Submit</button>
         </form>
+        <div style="margin-top: 20px;"></div>
         <a href="Product.html" class="btn btn-primary">Go Back</a>
     </div>
-
+    <script src="js/jquery-1.11.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
+      crossorigin="anonymous"></script>
+    <script src="js/plugins.js"></script>
+    <script src="js/script.js"></script>
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             // 从 URL 获取 categoryId
             const urlParams = new URLSearchParams(window.location.search);
             const productId = urlParams.get('id');  // 假设 URL 中是 ?id=123
@@ -48,25 +67,38 @@
                 alert('Product ID is missing in the URL!');
                 return;
             }
-                        // 向后端请求 product 数据
-                        $.ajax({
+            // 向后端请求 product 数据并预填入表单
+            $.ajax({
                 url: 'https://localhost:7221/api/products/' + productId,  // 使用正确的 URL
                 type: 'GET',
                 cache: false,  // 禁用缓存
-                success: function(productData) {
+                success: function (productData) {
                     // 成功获取类别数据后填充表单
                     $('#Name').val(productData.name);
                     $('#Description').val(productData.description);
                     $('#CategoryId').val(productData.categoryId);  // 确保填充CategoryId字段
                     $('#Price').val(productData.price);  // 填充Price
                     $('#Quantity').val(productData.quantityInStock);  // 填充Quantity
+                    $('#ImageDisplay').attr('src', productData.imageUrl).show();  // 填充Image缩略图
+                    $('#ImageUrl').val(productData.imageUrl);  // 填充Image Url
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     alert('An error occurred while fetching product data: ' + error);
                 }
             });
 
-            $('#editProductForm').on('submit', function(e) {
+            // 添加事件，根据上传图片更新url和缩略图
+            const uploadElement = document.getElementById('ImageUpload');
+            const imageUrlElement = document.getElementById('ImageUrl');
+            const imageDisplayElement = document.getElementById('ImageDisplay');
+
+            uploadElement.addEventListener('change', (e) => {
+                uploadImage(e, imageUrlElement, imageDisplayElement);
+            });
+
+
+            // 点击sumbit后提交更新 product 数据
+            $('#editProductForm').on('submit', function (e) {
                 e.preventDefault(); // 防止默认的表单提交
 
                 var productData = {
@@ -75,7 +107,8 @@
                     Description: $('#Description').val(),
                     CategoryId: $('#CategoryId').val(),  // 获取 CategoryId 的值
                     Price: $('#Price').val(),  // 获取 Price 的值
-                    QuantityInStock: $('#Quantity').val()  // 获取 Quantity 的值
+                    QuantityInStock: $('#Quantity').val(),  // 获取 Quantity 的值
+                    ImageUrl: $('#ImageUrl').val()  // 获取 ImageUrl 的值
                 };
 
                 $.ajax({
@@ -83,10 +116,10 @@
                     type: 'PUT',  // 使用 PUT 请求进行编辑操作
                     contentType: 'application/json',
                     data: JSON.stringify(productData),
-                    success: function(response) {
+                    success: function (response) {
                         alert('Product updated successfully');
                     },
-                    error: function(xhr, status, error) {
+                    error: function (xhr, status, error) {
                         alert('An error occurred: ' + error);
                     }
                 });
@@ -94,4 +127,5 @@
         });
     </script>
 </body>
+
 </html>

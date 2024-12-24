@@ -1,5 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using MiniMart.Data;
+using MiniMart.Repositories;
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +32,8 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader(); // 允许所有头
     });
 });
+
+builder.Services.AddScoped<IImageRepository, CloudinaryImageRepository>();
 
 var app = builder.Build();
 

@@ -84,6 +84,7 @@ namespace MiniMart.Controllers
             prod.CategoryId = product.CategoryId;
             prod.Price = product.Price;
             prod.QuantityInStock = product.QuantityInStock;
+            prod.ImageUrl = product.ImageUrl;
 
             // 更新 Category
             if (prod.CategoryId != product.CategoryId)

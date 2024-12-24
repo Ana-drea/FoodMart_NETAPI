@@ -13,6 +13,7 @@ namespace MiniMart.Models
         public decimal Price { get; set; }
         [Range(0, int.MaxValue)]
         public int? QuantityInStock { get; set; }
+        public string? ImageUrl { get; set; }
 
         // 添加导航属性
         public Category? Category { get; set; } = null!;
