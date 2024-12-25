@@ -1,16 +1,16 @@
-How to update database after change in models:
+### How to update database after change in models:
 1. Empty database and all tables
-
+```bash
 DROP DATABASE FoodMartDb;
 CREATE DATABASE FoodMartDb;
-
+```
 2. migrate to database
-
-dotnet ef migrations add initial
+```bash
+dotnet ef migrations add Initial
 dotnet ef database update
-
+```
 3. insert seed data
-
+```bash
 INSERT INTO Categories (Id, Name, Description) VALUES
 (1, 'Electronics', 'Devices and gadgets like phones, laptops, and cameras'),
 (2, 'Groceries', 'Everyday essential food items and supplies');
@@ -22,6 +22,6 @@ INSERT INTO Products (Id, Name, Description, CategoryId, Price, QuantityInStock)
 (4, 'Apple', 'Fresh organic apples, 1kg', 2, 3.99, 100),
 (5, 'Milk', '1-liter full cream milk', 2, 1.49, 200),
 (6, 'Bread', 'Whole grain bread, 400g', 2, 2.49, 150);
-
+```bash
 
 

@@ -4,6 +4,7 @@ using MiniMart.Data;
 using MiniMart.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MiniMart.Controllers
 {
@@ -18,7 +19,7 @@ namespace MiniMart.Controllers
             _context = context;
         }
 
-        [HttpGet]
+        [HttpGet,Authorize]
         public async Task<ActionResult<IEnumerable<Product>>> Get()
         {
             var products = await _context.Products.ToListAsync();
