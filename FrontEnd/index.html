@@ -111,26 +111,74 @@
           <li class="list-group-item d-flex justify-content-between lh-sm">
             <div>
               <h6 class="my-0">Growers cider</h6>
-              <small class="text-body-secondary">Brief description</small>
+              <div class="input-group product-qty">
+                <span class="input-group-btn">
+                  <button type="button" class="quantity-left-minus btn btn-sm btn-number" data-type="minus">
+                    <svg width="16" height="16">
+                      <use xlink:href="#minus"></use>
+                    </svg>
+                  </button>
+                </span>
+                <input type="text" id="quantity" name="quantity" class="form-control input-number" value="1">
+                <span class="input-group-btn">
+                  <button type="button" class="quantity-right-plus btn btn-sm btn-number" data-type="plus">
+                    <svg width="16" height="16">
+                      <use xlink:href="#plus"></use>
+                    </svg>
+                  </button>
+                </span>
+              </div>
             </div>
             <span class="text-body-secondary">$12</span>
           </li>
           <li class="list-group-item d-flex justify-content-between lh-sm">
             <div>
               <h6 class="my-0">Fresh grapes</h6>
-              <small class="text-body-secondary">Brief description</small>
+              <div class="input-group product-qty">
+                <span class="input-group-btn">
+                  <button type="button" class="quantity-left-minus btn btn-sm btn-number" data-type="minus">
+                    <svg width="16" height="16">
+                      <use xlink:href="#minus"></use>
+                    </svg>
+                  </button>
+                </span>
+                <input type="text" id="quantity" name="quantity" class="form-control input-number" value="1">
+                <span class="input-group-btn">
+                  <button type="button" class="quantity-right-plus btn btn-sm btn-number" data-type="plus">
+                    <svg width="16" height="16">
+                      <use xlink:href="#plus"></use>
+                    </svg>
+                  </button>
+                </span>
+              </div>
             </div>
             <span class="text-body-secondary">$8</span>
           </li>
           <li class="list-group-item d-flex justify-content-between lh-sm">
             <div>
               <h6 class="my-0">Heinz tomato ketchup</h6>
-              <small class="text-body-secondary">Brief description</small>
+              <div class="input-group product-qty">
+                <span class="input-group-btn">
+                  <button type="button" class="quantity-left-minus btn btn-sm btn-number" data-type="minus">
+                    <svg width="16" height="16">
+                      <use xlink:href="#minus"></use>
+                    </svg>
+                  </button>
+                </span>
+                <input type="text" id="quantity" name="quantity" class="form-control input-number" value="1">
+                <span class="input-group-btn">
+                  <button type="button" class="quantity-right-plus btn btn-sm btn-number" data-type="plus">
+                    <svg width="16" height="16">
+                      <use xlink:href="#plus"></use>
+                    </svg>
+                  </button>
+                </span>
+              </div>
             </div>
             <span class="text-body-secondary">$5</span>
           </li>
           <li class="list-group-item d-flex justify-content-between">
-            <span>Total (USD)</span>
+            <span>Total</span>
             <strong>$20</strong>
           </li>
         </ul>
@@ -3096,8 +3144,8 @@
         // 遍历产品数据并插入
         // 遍历产品数据，生成 HTML 并插入
         products.forEach(product => {
-            // 动态生成产品 HTML
-            const productHTML = `
+          // 动态生成产品 HTML
+          const productHTML = `
                 <div class="col">
                     <div class="product-item">
                         ${product.discount ? `<span class="badge bg-success position-absolute m-3">-${product.discount}%</span>` : ''}
@@ -3107,6 +3155,7 @@
                             <img src="${product.image || 'images/thumb-bananas.png'}" alt="${product.name}" class="tab-image">
                           </a>
                         </figure>
+                        <input class="form-control" type="number" id="productId" name="productId" value="${product.id}" style="display:none"/>
                         <h3>${product.name}</h3>
                         <span class="qty">${product.quantityInStock} Unit</span>
                         <span class="rating">
@@ -3127,19 +3176,63 @@
                                   </button>
                               </span>
                           </div>
-                          <a href="#" class="nav-link">Add to Cart <iconify-icon icon="uil:shopping-cart"></iconify-icon></a>
+                          <a href="#" class="nav-link add-to-cart">Add to Cart <iconify-icon icon="uil:shopping-cart"></iconify-icon></a>
                         </div>
                     </div>
                 </div>
                 `;
-                
-            // 插入生成的 HTML 到产品网格容器
-            productGrid.insertAdjacentHTML('beforeend', productHTML);
-          });
+
+          // 插入生成的 HTML 到产品网格容器
+          productGrid.insertAdjacentHTML('beforeend', productHTML);
+        });
+
+        // 为新生成的 "Add to Cart" 按钮绑定点击事件
+        productGrid.querySelectorAll('.product-item').forEach(productElement => {
+          const addToCartButton = productElement.querySelector('.add-to-cart');
+          if (addToCartButton) {
+            addToCartButton.addEventListener('click', event => {
+              event.preventDefault(); // 阻止默认行为
+
+              // 获取 productId 和 quantity
+              const productId = productElement.querySelector('#productId').value;
+              const quantity = productElement.querySelector('#quantity').value;
+              console.log(productId+" "+quantity)
+
+              // 向后端发送 POST 请求
+              fetch('https://localhost:7221/api/carts', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'accept': 'application/json'
+                },
+                credentials: 'include', // 包含用户的身份认证信息
+                body: JSON.stringify({
+                  productId: productId,
+                  quantity: quantity
+                })
+              })
+                .then(response => {
+                  if (response.ok) {
+                    return response.json();
+                  } else {
+                    throw new Error('Failed to add to cart.');
+                  }
+                })
+                .then(data => {
+                  console.log('Cart updated successfully:', data);
+                  alert('Product added to cart!');
+                })
+                .catch(error => {
+                  console.error('Error adding to cart:', error);
+                  alert('Failed to add product to cart. Please try again.');
+                });
+            });
+          }
+        });
       }, 200);  // 延迟 500ms，等待 DOM 完成渲染
     }
 
-    function fetchProductsNPopulate(categoryId){
+    function fetchProductsNPopulate(categoryId) {
       const apiUrl = categoryId
         ? `https://localhost:7221/api/products/category/${categoryId}`
         : 'https://localhost:7221/api/products';
@@ -3172,7 +3265,6 @@
 
       fetchProductsNPopulate(categoryId);
     });
-
 
   </script>
 </body>

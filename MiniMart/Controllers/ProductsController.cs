@@ -19,7 +19,7 @@ namespace MiniMart.Controllers
             _context = context;
         }
 
-        [HttpGet,Authorize]
+        [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> Get()
         {
             var products = await _context.Products.ToListAsync();

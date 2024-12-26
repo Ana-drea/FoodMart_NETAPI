@@ -52,15 +52,23 @@ builder.Services.AddIdentityApiEndpoints<IdentityUser>()
 // 添加 CORS 服务以允许跨域请求
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("AllowSpecificOrigin", policy =>
     {
-        policy.AllowAnyOrigin()  // 允许所有来源
-              .AllowAnyMethod()  // 允许所有 HTTP 方法
-              .AllowAnyHeader(); // 允许所有头
+        policy.WithOrigins("http://127.0.0.1:5500") // 允许前端的来源
+              .AllowAnyHeader()                     // 允许任何请求头
+              .AllowAnyMethod()                     // 允许任何方法（GET, POST 等）
+              .AllowCredentials();                  // 允许携带凭证
     });
 });
 
 builder.Services.AddScoped<IImageRepository, CloudinaryImageRepository>();
+
+// 配置 Cookie 选项
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.SameSite = SameSiteMode.None; // 允许跨域
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // 仅在 HTTPS 下传输
+});
 
 var app = builder.Build();
 
@@ -76,7 +84,7 @@ app.MapIdentityApi<IdentityUser>();
 app.UseHttpsRedirection();
 
 // 使用 CORS 中间件
-app.UseCors("AllowAll");
+app.UseCors("AllowSpecificOrigin");
 
 app.UseAuthentication();
 app.UseAuthorization();

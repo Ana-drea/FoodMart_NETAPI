@@ -94,12 +94,13 @@
       }
 
       // Submit login request
-      fetch("https://localhost:7221/login", {
+      fetch("https://localhost:7221/login?useCookies=true", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "accept": "application/json"
         },
+        credentials: "include", // Ensure cookies are included in the request
         body: JSON.stringify({
           email: email,
           password: password
@@ -114,18 +115,18 @@
           }
         })
         .then((data) => {
-          // Save Bearer Token to localStorage or sessionStorage
-          localStorage.setItem("bearerToken", data.accessToken);
-          // Retrieve the token from localStorage
-          const token = localStorage.getItem("bearerToken");
+          // // Save Bearer Token to localStorage or sessionStorage
+          // localStorage.setItem("bearerToken", data.accessToken);
+          // // Retrieve the token from localStorage
+          // const token = localStorage.getItem("bearerToken");
 
-          alert("Registration successful!");
-          // 注册成功后跳转到登录页面
-          // window.location.href = "index.html";
+          alert("Login successful!");
+          // 登录成功后跳转到indexindex页面
+          window.location.href = "index.html";
         })
         .catch((error) => {
           console.error("Error:", error);
-          alert(error.message || "An error occurred during registration.");
+          alert(error.message || "An error occurred Login.");
         });
     });
   </script>

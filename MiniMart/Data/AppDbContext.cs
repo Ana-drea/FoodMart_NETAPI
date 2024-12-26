@@ -13,6 +13,8 @@ namespace MiniMart.Data
         // 定义 DbSet 属性以对应数据库中的表
         public DbSet<Category> Categories { get; set; }
         public DbSet<Product> Products { get; set; }
+        public DbSet<Cart> Carts { get; set; }
+        public DbSet<CartItem> CartItems { get; set; }
 
         // 如果需要额外的模型配置，可以在此方法中完成
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -30,6 +32,11 @@ namespace MiniMart.Data
                 .WithMany(c => c.Products) // Category 拥有多个 Product
                 .HasForeignKey(p => p.CategoryId) // 外键是 CategoryId
                 .OnDelete(DeleteBehavior.Restrict); // 设置删除行为为 Restrict
+
+            modelBuilder.Entity<Cart>()
+                .HasMany(c => c.CartItems)
+                .WithOne(ci => ci.Cart)
+                .HasForeignKey(ci => ci.CartId);
         }
     }
 }
