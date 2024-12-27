@@ -121,6 +121,11 @@ namespace MiniMart.Controllers
                 if (existingCartItem.Quantity <= 0)
                 {
                     cart.CartItems.Remove(existingCartItem);
+                    // remove cart if there is no cart item after update
+                    if (cart.CartItems.Count == 0)
+                    {
+                        _context.Carts.Remove(cart);
+                    }
                 }
             }
             else

@@ -2981,9 +2981,7 @@
         return response.json();
       })
       .then(data => {
-        console.log('Categories fetched:', data); // 打印返回的类别数据
-
-        // **逻辑 1：填充下拉菜单**
+        // **Logic 1: Populate Dropdown Menu**
         // Find the select element
         const selectElement = document.getElementById('categories-select');
         // Loop through the fetched categories and add them as options
@@ -2994,11 +2992,10 @@
           selectElement.appendChild(option);
         });
 
-        // **逻辑 2：填充类别轮播图**
+        // **Logic 2: Populate Category Swiper**
         const categoryContainer = document.getElementById('category-container');
         if (categoryContainer) {
-          // 清空现有内容
-          // categoryContainer.innerHTML = '';
+          categoryContainer.innerHTML = '';
 
           data.forEach(category => {
             const categoryItem = document.createElement('a');
@@ -3011,7 +3008,7 @@
             categoryContainer.appendChild(categoryItem);
           });
 
-          // 重新初始化 Swiper（如果使用了 Swiper 插件）
+          // Reinitialize Swiper (if Swiper plugin is used)
           if (typeof Swiper !== 'undefined') {
             new Swiper('.category-carousel', {
               slidesPerView: 'auto',
@@ -3021,7 +3018,7 @@
           }
 
 
-          // **逻辑 3：填充类别nav tab**
+          // **Logic 3: Populate Category Nav Tab**
           const categoryNavTab = document.getElementById('nav-tab');
           if (categoryNavTab) {
             data.forEach(category => {
@@ -3036,7 +3033,7 @@
               categoryNavTab.appendChild(categoryItem);
             });
           }
-          // 确保所有 nav tab 填充完成后调用 generateTabPanes
+          // Ensure generateTabPanes is called after nav tabs are populated
           generateTabPanes();
         }
       })
@@ -3044,21 +3041,21 @@
         console.error('Error fetching categories:', error);
       });
 
-    // ** 逻辑4：根据nav tab类别在下方生成对应数量的tab-pane
+    // **Logic 4: Generate Corresponding Tab-pane Based on Category**
     function generateTabPanes() {
       const navTabs = document.querySelectorAll('.nav-tabs .nav-link');
       const tabContent = document.querySelector('#nav-tabContent');
 
-      // 清空现有 tab-pane 内容
+      // empty current tab-pane
       tabContent.innerHTML = '';
 
       navTabs.forEach(tab => {
-        // 获取 tab 的 ID、categoryId 和 active 状态
+        // Retrieve the tab's ID, categoryId, and active state
         const targetId = tab.getAttribute('data-bs-target').replace('#', '');
         const categoryId = tab.getAttribute('categoryId');
         const isActive = tab.classList.contains('active') ? 'show active' : '';
 
-        // 动态插入对应的 tab-pane，并将 categoryId 设置为 tab-pane 的属性
+        // Dynamically insert each tab-pane and set categoryId as an attribute
         tabContent.insertAdjacentHTML(
           'beforeend',
           `<div class="tab-pane fade ${isActive}" id="${targetId}" role="tabpanel" aria-labelledby="${tab.id}" categoryId="${categoryId}">
@@ -3070,10 +3067,9 @@
     }
 
 
-    // Fetch all products from the API
-    // 定义填充产品网格的通用函数
+    // **Logic 5: Dynamically Populate Trending Product Grid**
     function populateProductGrid(products) {
-      // 延迟 500 毫秒后检查并填充产品数据
+      // check and populate product data after 500ms timeout
       setTimeout(function () {
         const activeTabPane = document.querySelector('.tab-pane.show.active');
         if (!activeTabPane) {
@@ -3139,16 +3135,34 @@
           productGrid.insertAdjacentHTML('beforeend', productHTML);
         });
 
-        // 为新生成的 "Add to Cart" 按钮绑定点击事件
-        productGrid.querySelectorAll('.product-item').forEach(productElement => {
+        // bind event listeners for dynamically generated product elements
+        productGrid.querySelectorAll('.product-item').forEach((productElement) => {
+          const quantityInput = productElement.querySelector('#quantity');
+
+          // bind click event for plus icon
+          productElement.querySelector('.quantity-right-plus').addEventListener('click', (e) => {
+            e.preventDefault();
+            let currentQuantity = parseInt(quantityInput.value) || 0;
+            quantityInput.value = currentQuantity + 1; // increment quantity
+          });
+
+          // bind click event for minus icon
+          productElement.querySelector('.quantity-left-minus').addEventListener('click', (e) => {
+            e.preventDefault();
+            let currentQuantity = parseInt(quantityInput.value) || 0;
+            if (currentQuantity > 0) {
+              quantityInput.value = currentQuantity - 1; // decrement quantity
+            }
+          });
+          // bind click event for "Add to Cart" button
           const addToCartButton = productElement.querySelector('.add-to-cart');
           if (addToCartButton) {
             addToCartButton.addEventListener('click', event => {
-              event.preventDefault(); // 阻止默认行为
+              event.preventDefault();
 
               // 获取 productId 和 quantity
               const productId = productElement.querySelector('#productId').value;
-              const quantity = productElement.querySelector('#quantity').value;
+              const quantity = quantityInput.value;
 
               // 向后端发送 POST 请求
               fetch('https://localhost:7221/api/carts', {
@@ -3160,7 +3174,7 @@
                 credentials: 'include', // 包含用户的身份认证信息
                 body: JSON.stringify({
                   productId: productId,
-                  quantity: quantity
+                  change: quantity
                 })
               })
                 .then(response => {
@@ -3173,6 +3187,7 @@
                 .then(data => {
                   console.log('Cart updated successfully:', data);
                   alert('Product added to cart!');
+                  fetchCartData();
                 })
                 .catch(error => {
                   console.error('Error adding to cart:', error);
@@ -3198,7 +3213,6 @@
           return response.json();
         })
         .then(products => {
-          console.log('Products fetched:', products);
           populateProductGrid(products);
         })
         .catch(error => {
@@ -3310,7 +3324,7 @@
           }
           // record the new value and update quantity in frontend and backend
           quantityInput.dataset.previousValue = newQuantity;
-          updateQuantity(productElement, { quantity: newQuantity }); 
+          updateQuantity(productElement, { quantity: newQuantity });
         });
       });
     }
@@ -3322,14 +3336,16 @@
       const totalPriceElement = document.querySelector('.cart-total');
 
       // 更新主页 your cart下方总价
-      totalPriceElement.textContent = `$${data.totalPrice.toFixed(2)}`;
+      totalPriceElement.textContent = `$${(data?.totalPrice || 0).toFixed(2)}`;
       cartList.innerHTML = ''; // 清空现有内容
 
       let totalQuantity = 0;
-      data.items.forEach(item => {
-        const cartItem = document.createElement('li');
-        cartItem.className = 'list-group-item d-flex justify-content-between lh-sm';
-        cartItem.innerHTML = `
+      // if there are cart items, populate the cart
+      if (data != null) {
+        data.items.forEach(item => {
+          const cartItem = document.createElement('li');
+          cartItem.className = 'list-group-item d-flex justify-content-between lh-sm';
+          cartItem.innerHTML = `
       <div>
         <h6 class="my-0">${item.productName}</h6>
         <div class="input-group product-qty">
@@ -3340,7 +3356,7 @@
               </svg>
             </button>
           </span>
-          <input type="text" name="quantity" class="form-control input-number" value="${item.quantity}" style="width: 40px;text-align: center; ">
+          <input type="text" name="quantity" class="form-control input-number" value="${item.quantity}" style="width: 60px;text-align: center; ">
           <span class="input-group-btn">
             <button type="button" class="quantity-right-plus btn btn-sm btn-number" data-type="plus">
               <svg width="16" height="16">
@@ -3353,16 +3369,17 @@
       </div>
       <span class="text-body-secondary">$${(item.quantity * item.productPrice).toFixed(2)}</span>
     `;
-        cartList.appendChild(cartItem);
-        totalQuantity += item.quantity;
-      });
+          totalQuantity += item.quantity;
+          cartList.appendChild(cartItem);
 
-      // attach the final li element for total price
+        });
+      }
+      // attach the final li element for total price, price will be 0 if cart is empty
       const totalPriceItem = document.createElement('li');
       totalPriceItem.className = 'list-group-item d-flex justify-content-between';
       totalPriceItem.innerHTML = `            
     <span>Total</span>
-    <strong>$${data.totalPrice.toFixed(2)}</strong>
+    <strong>$${(data?.totalPrice || 0).toFixed(2)}</strong>
   `;
       cartList.appendChild(totalPriceItem);
 
@@ -3387,19 +3404,6 @@
       }
     }
 
-    // 清空购物车并提示登录
-    function showEmptyCart() {
-      const cartElement = document.querySelector('#offcanvasCart .offcanvas-body'); // 定位购物车内容区域
-      if (cartElement) {
-        cartElement.innerHTML = `
-      <div class="text-center">
-        <p class="text-muted">Cart is empty.</p>
-      </div>
-    `;
-      } else {
-        console.error('Cart element not found!');
-      }
-    }
 
     // 获取购物车数据并更新内容
     function fetchCartData() {
@@ -3416,7 +3420,8 @@
             return null;
           }
           if (response.status === 404) {
-            showEmptyCart(); // 调用函数显示空购物车
+            //showEmptyCart(); // 调用函数显示空购物车
+            updateCart();
             return null;
           }
           if (!response.ok) {
