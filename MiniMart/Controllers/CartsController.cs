@@ -26,7 +26,7 @@ namespace MiniMart.Controllers
         [HttpGet]
         public async Task<IActionResult> GetCart()
         {
-            // 使用 User 获取当前登录用户
+            // use User to get currently user
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
@@ -35,10 +35,10 @@ namespace MiniMart.Controllers
 
             var userId = user.Id;
 
-            // 查找该用户的购物车，并加载 CartItems 和对应的 Product
+            // search for cart of that user, load CartItems and corresponding Product
             var cart = await _context.Carts
-                .Include(c => c.CartItems) // 加载购物车中的项目
-                    .ThenInclude(ci => ci.Product) // 加载购物车项目对应的商品
+                .Include(c => c.CartItems) 
+                    .ThenInclude(ci => ci.Product) 
                 .FirstOrDefaultAsync(c => c.UserId == userId);
 
 
@@ -47,7 +47,7 @@ namespace MiniMart.Controllers
                 return NotFound(new { message = "Cart not found for the user." });
             }
 
-            // 返回包含购物车和商品详细信息的数据
+            // return data including cart, cartItems and products
             return Ok(new
             {
                 cartId = cart.Id,
@@ -66,12 +66,16 @@ namespace MiniMart.Controllers
         [HttpPost]
         public async Task<IActionResult> AddToCart([FromBody] CartItemDto cartItemDto)
         {
-            if (cartItemDto == null || cartItemDto.ProductId <= 0 )
+            if (cartItemDto == null 
+                || cartItemDto.ProductId <= 0 
+                || (cartItemDto.Change == null && cartItemDto.Quantity == null) 
+                || (cartItemDto.Change <= 0 && cartItemDto.Quantity < 0))
             {
                 return BadRequest("Invalid product ID or quantity.");
             }
 
-            // 获取当前用户
+
+            // use User to get currently user
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
@@ -80,14 +84,14 @@ namespace MiniMart.Controllers
 
             var userId = user.Id;
 
-            // 查找该用户的购物车
+            // search for cart of that user
             var cart = await _context.Carts
-                .Include(c => c.CartItems) // 加载购物车中的项目
+                .Include(c => c.CartItems) // load cart items to cart
                 .FirstOrDefaultAsync(c => c.UserId == userId);
 
             if (cart == null)
             {
-                // 如果购物车不存在，为用户创建新购物车
+                // create cart if it doesn't exist
                 cart = new Cart
                 {
                     UserId = userId,
@@ -97,26 +101,45 @@ namespace MiniMart.Controllers
                 _context.Carts.Add(cart);
             }
 
-            // 查找购物车中是否已有该商品
+            // search if the cartItem already exists the cart
             var existingCartItem = cart.CartItems.FirstOrDefault(ci => ci.ProductId == cartItemDto.ProductId);
 
             if (existingCartItem != null)
             {
-                // 如果商品已存在，更新数量
-                existingCartItem.Quantity += cartItemDto.Quantity;
+                // update quantity if it does
+                // if frontend passed in Change, increase or decrease existingCartItem's quantity by Change
+                if (cartItemDto.Change.HasValue)
+                {
+                    existingCartItem.Quantity += cartItemDto.Change.Value;
+                }
+                // if frontend passed in Quantity, update existingCartItem's quantity
+                else if (cartItemDto.Quantity.HasValue)
+                {
+                    existingCartItem.Quantity = cartItemDto.Quantity.Value;
+                }
+                // if the quantity is 0, remove from cart
+                if (existingCartItem.Quantity <= 0)
+                {
+                    cart.CartItems.Remove(existingCartItem);
+                }
             }
             else
             {
-                // 如果商品不存在，添加新商品到购物车
+                // add cartItem to cart if it doesn't
                 var newCartItem = new CartItem
                 {
                     ProductId = cartItemDto.ProductId,
-                    Quantity = cartItemDto.Quantity
+                    Quantity = cartItemDto.Change.HasValue ? cartItemDto.Change.Value : cartItemDto.Quantity.Value
                 };
-                cart.CartItems.Add(newCartItem);
+                // only add new item if the final quantity is greater than 0
+                if (newCartItem.Quantity >= 0)
+                {
+                    cart.CartItems.Add(newCartItem);
+                }
+                
             }
 
-            // 保存更改
+            // save the change
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Product added to cart successfully." });

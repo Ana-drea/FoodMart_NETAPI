@@ -8,9 +8,9 @@ namespace MiniMart.Models
         public int ProductId { get; set; }
         public int Quantity { get; set; }
         public int CartId { get; set; }
-        [JsonIgnore] // 阻止循环引用
+        [JsonIgnore] // Prevent circular references
         public Cart Cart { get; set; }
-        [JsonIgnore] // 阻止循环引用
+        [JsonIgnore] 
         public Product Product { get; set; }
     }
 }

@@ -7,7 +7,7 @@ namespace MiniMart.Models
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
-        [JsonIgnore] // 避免循环引用
+        [JsonIgnore] // Prevent circular references
         public ICollection<Product> Products { get; set; } = new List<Product>();
     }
 }

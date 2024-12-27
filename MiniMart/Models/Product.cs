@@ -15,10 +15,11 @@ namespace MiniMart.Models
         public int? QuantityInStock { get; set; }
         public string? ImageUrl { get; set; }
 
-        // 添加导航属性
-        public Category? Category { get; set; } = null!;
+        // Add navigation property to associate a product with a category
+        public Category? Category { get; set; } = null!; 
 
-        // 导航属性：一个商品可能存在于多个购物车项中
-        public ICollection<CartItem> CartItems { get; set; }
+        // Navigation property: A product may appear in multiple cart items
+        public ICollection<CartItem> CartItems { get; set; } 
+
     }
 }

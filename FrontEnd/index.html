@@ -3220,20 +3220,45 @@
 
 
     // （点击购物车+-按钮后）更新商品数量并发送请求 
-    function updateQuantity(productElement, change) {
+    function updateQuantity(productElement, { quantity = null, change = null }) {
       const quantityInput = productElement.querySelector('[name="quantity"]');
       let currentQuantity = parseInt(quantityInput.value);
-
-
-      // 计算新的数量
-      const newQuantity = currentQuantity + change;
-      if (newQuantity < 0) return; // 数量不能小于 0
 
       // 获取商品的 productId
       const productId = productElement.querySelector('[data-product-id]').dataset.productId;
 
+      // 计算新的数量
+      let newQuantity;
+      if (quantity !== null) {
+        // 如果传入的是 quantity，则直接更新为该值
+        newQuantity = quantity;
+      } else if (change !== null) {
+        // 如果传入的是 change，则在现有数量基础上加上变化量
+        newQuantity = currentQuantity + change;
+      } else {
+        console.error('Either quantity or change must be provided.');
+        return;
+      }
+
+      // 数量不能小于 0
+      if (newQuantity < 0) {
+        console.error('Quantity cannot be less than 0.');
+        return;
+      }
+
       // 更新数量输入框的值
       quantityInput.value = newQuantity;
+
+      // 准备请求的 payload
+      const payload = {
+        productId: productId,
+      };
+
+      if (quantity !== null) {
+        payload.quantity = newQuantity; // 直接更新数量
+      } else if (change !== null) {
+        payload.change = change; // 使用变化量
+      }
 
       // 发送 POST 请求到后端
       fetch('https://localhost:7221/api/carts', {
@@ -3243,10 +3268,7 @@
           'accept': 'application/json'
         },
         credentials: 'include', // 包含用户的身份认证信息
-        body: JSON.stringify({
-          productId: productId,
-          quantity: change
-        })
+        body: JSON.stringify(payload)
       })
         .then((response) => {
           if (!response.ok) {
@@ -3254,9 +3276,9 @@
           }
           return response.json();
         })
-        // .then((data) => {
-        //   updateCart(data); // 调用现有函数更新购物车内容
-        // })
+        .then((data) => {
+          fetchCartData(); // 调用现有函数更新购物车内容
+        })
         .catch((error) => console.error('Error:', error));
     }
 
@@ -3268,13 +3290,27 @@
         // 绑定“加号”按钮事件
         productElement.querySelector('.quantity-right-plus').addEventListener('click', (e) => {
           e.preventDefault();
-          updateQuantity(productElement, 1); // 增加数量
+          updateQuantity(productElement, { change: 1 }); // 增加数量
         });
 
         // 绑定“减号”按钮事件
         productElement.querySelector('.quantity-left-minus').addEventListener('click', (e) => {
           e.preventDefault();
-          updateQuantity(productElement, -1); // 减少数量
+          updateQuantity(productElement, { change: -1 }); // 减少数量
+        });
+
+        // bind change quantity input event
+        const quantityInput = productElement.querySelector('[name="quantity"]');
+        quantityInput.addEventListener('change', (e) => {
+          const newQuantity = parseInt(e.target.value);
+          if (isNaN(newQuantity) || newQuantity < 0) {
+            // if the input is less than 0 or invalid, revert to previous value
+            e.target.value = parseInt(quantityInput.dataset.previousValue || 0);
+            return;
+          }
+          // record the new value and update quantity in frontend and backend
+          quantityInput.dataset.previousValue = newQuantity;
+          updateQuantity(productElement, { quantity: newQuantity }); 
         });
       });
     }
@@ -3304,7 +3340,7 @@
               </svg>
             </button>
           </span>
-          <input type="text" name="quantity" class="form-control input-number" value="${item.quantity}">
+          <input type="text" name="quantity" class="form-control input-number" value="${item.quantity}" style="width: 40px;text-align: center; ">
           <span class="input-group-btn">
             <button type="button" class="quantity-right-plus btn btn-sm btn-number" data-type="plus">
               <svg width="16" height="16">
@@ -3315,7 +3351,7 @@
           <span class="text-body-secondary" data-product-id="${item.productId}" style="display:none"></span>
         </div>
       </div>
-      <span class="text-body-secondary">$${(item.quantity*item.productPrice).toFixed(2)}</span>
+      <span class="text-body-secondary">$${(item.quantity * item.productPrice).toFixed(2)}</span>
     `;
         cartList.appendChild(cartItem);
         totalQuantity += item.quantity;

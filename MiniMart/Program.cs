@@ -26,21 +26,19 @@ builder.Services.AddSwaggerGen(options =>
         Description = "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\""
     });
 
-    // 注册自定义的 OperationFilter
+    // Register custom OperationFilter
     options.OperationFilter<MiniMart.Helpers.SecurityRequirementsOperationFilter>();
 });
 
 
 
-// 注册控制器服务
 builder.Services.AddControllers();
 
 builder.Services.AddAuthorization();
 
-// 配置 MySQL 连接字符串
+// configure MySQL connection string
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-// 使用 MySQL 配置 DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString,
         ServerVersion.AutoDetect(connectionString)));
@@ -49,26 +47,29 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddIdentityApiEndpoints<IdentityUser>()
     .AddEntityFrameworkStores<AppDbContext>();
 
-// 添加 CORS 服务以允许跨域请求
+// Add CORS services to allow cross-origin requests
 builder.Services.AddCors(options =>
 {
+    // Add CORS policy for specific origin
     options.AddPolicy("AllowSpecificOrigin", policy =>
     {
-        policy.WithOrigins("http://127.0.0.1:5500") // 允许前端的来源
-              .AllowAnyHeader()                     // 允许任何请求头
-              .AllowAnyMethod()                     // 允许任何方法（GET, POST 等）
-              .AllowCredentials();                  // 允许携带凭证
+        policy.WithOrigins("http://127.0.0.1:5500") // Allow specific frontend origin
+              .AllowAnyHeader()                    // Allow any headers
+              .AllowAnyMethod()                    // Allow any methods (GET, POST, etc.)
+              .AllowCredentials();                 // Allow credentials (cookies, authentication headers, etc.)
     });
+
 });
 
 builder.Services.AddScoped<IImageRepository, CloudinaryImageRepository>();
 
-// 配置 Cookie 选项
+// Configure Cookie options
 builder.Services.ConfigureApplicationCookie(options =>
 {
-    options.Cookie.SameSite = SameSiteMode.None; // 允许跨域
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // 仅在 HTTPS 下传输
+    options.Cookie.SameSite = SameSiteMode.None; // Allow cross-origin requests
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Transmit cookies only over HTTPS
 });
+
 
 var app = builder.Build();
 
@@ -83,13 +84,13 @@ if (app.Environment.IsDevelopment())
 app.MapIdentityApi<IdentityUser>();
 app.UseHttpsRedirection();
 
-// 使用 CORS 中间件
+// use CORS middleware
 app.UseCors("AllowSpecificOrigin");
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-// 配置控制器路由
+// Configure controller routes
 app.MapControllers();
 
 

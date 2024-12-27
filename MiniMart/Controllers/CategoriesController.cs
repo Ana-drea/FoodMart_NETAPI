@@ -42,7 +42,7 @@ namespace MiniMart.Controllers
             {
                 return BadRequest();
             }
-            if (!ModelState.IsValid) // 验证模型是否有效
+            if (!ModelState.IsValid) // check the model state for category is valid
             {
                 return BadRequest(ModelState);
             }
@@ -62,7 +62,7 @@ namespace MiniMart.Controllers
             }
             cat.Name = category.Name;
             cat.Description = category.Description;
-            // 保存更改到数据库
+
             try
             {
                 await _context.SaveChangesAsync();
