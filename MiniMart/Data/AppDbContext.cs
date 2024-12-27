@@ -33,10 +33,17 @@ namespace MiniMart.Data
                 .HasForeignKey(p => p.CategoryId) // 外键是 CategoryId
                 .OnDelete(DeleteBehavior.Restrict); // 设置删除行为为 Restrict
 
+            // 配置 Cart 和 CartItem 的关系
             modelBuilder.Entity<Cart>()
                 .HasMany(c => c.CartItems)
                 .WithOne(ci => ci.Cart)
                 .HasForeignKey(ci => ci.CartId);
+
+            // 配置 CartItem 和 Product 的关系
+            modelBuilder.Entity<CartItem>()
+                .HasOne(ci => ci.Product) // 一个 CartItem 关联一个 Product
+                .WithMany(p => p.CartItems) // 一个 Product 可以出现在多个 CartItem 中
+                .HasForeignKey(ci => ci.ProductId); // 外键是 ProductId
         }
     }
 }

@@ -177,7 +177,7 @@
             </div>
             <span class="text-body-secondary">$5</span>
           </li>
-          <li class="list-group-item d-flex justify-content-between">
+          <li class="list-group-item d-flex justify-content-between" id="totalPrice">
             <span>Total</span>
             <strong>$20</strong>
           </li>
@@ -3196,7 +3196,7 @@
               // 获取 productId 和 quantity
               const productId = productElement.querySelector('#productId').value;
               const quantity = productElement.querySelector('#quantity').value;
-              console.log(productId+" "+quantity)
+              console.log(productId + " " + quantity)
 
               // 向后端发送 POST 请求
               fetch('https://localhost:7221/api/carts', {
@@ -3266,6 +3266,83 @@
       fetchProductsNPopulate(categoryId);
     });
 
+    // 更新购物车内容
+    function updateCart(data) {
+      const cartList = document.querySelector('#offcanvasCart .list-group');
+      const totalBadge = document.querySelector('#offcanvasCart .badge');
+      // const totalPriceElement = document.getElementById('totalPrice').querySelector('strong');
+
+      cartList.innerHTML = ''; // 清空现有内容
+
+      let totalPrice = 0;
+      let totalQuantity = 0;
+      data.items.forEach(item => {
+        const cartItem = document.createElement('li');
+        cartItem.className = 'list-group-item d-flex justify-content-between lh-sm';
+        cartItem.innerHTML = `
+        <div>
+          <h6 class="my-0">${item.productName}</h6>
+          <div class="input-group product-qty">
+            <span class="input-group-btn">
+              <button type="button" class="quantity-left-minus btn btn-sm btn-number" data-type="minus">
+                <svg width="16" height="16">
+                  <use xlink:href="#minus"></use>
+                </svg>
+              </button>
+            </span>
+            <input type="text" name="quantity" class="form-control input-number" value="${item.quantity}">
+            <span class="input-group-btn">
+              <button type="button" class="quantity-right-plus btn btn-sm btn-number" data-type="plus">
+                <svg width="16" height="16">
+                  <use xlink:href="#plus"></use>
+                </svg>
+              </button>
+            </span>
+          </div>
+        </div>
+        <span class="text-body-secondary">$${item.productPrice}</span>
+      `;
+        cartList.appendChild(cartItem);
+        totalPrice += item.productPrice * item.quantity;
+        totalQuantity += item.quantity;
+      });
+      console.log(totalPrice);
+
+      // attach the final li element for total price
+      const totalPriceItem = document.createElement('li');
+      totalPriceItem.className = 'list-group-item d-flex justify-content-between';
+      totalPriceItem.innerHTML = `            
+            <span>Total</span>
+            <strong>$${totalPrice.toFixed(2)}</strong>
+            `;
+      cartList.appendChild(totalPriceItem);
+      // 更新总计数量
+      totalBadge.textContent = totalQuantity;
+      // totalPriceElement.textContent = `$${totalPrice.toFixed(2)}`;
+    }
+
+    // 获取购物车数据并更新内容
+    function fetchCartData() {
+      fetch('https://localhost:7221/api/carts', {
+        headers: {
+          'Content-Type': 'application/json',
+          'accept': 'application/json'
+        },
+        credentials: 'include' // 包含用户的身份认证信息
+      }) // 确保后端正确处理此路径
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to fetch cart data');
+          }
+          return response.json();
+        })
+        .then(data => updateCart(data))
+        .catch(error => console.error('Error:', error));
+    }
+    document.addEventListener('DOMContentLoaded', fetchCartData);
+
+    // 添加事件监听器到购物车按钮，点击按钮更新购物车
+    document.querySelector('[data-bs-target="#offcanvasCart"]').addEventListener('click', fetchCartData);
   </script>
 </body>
 

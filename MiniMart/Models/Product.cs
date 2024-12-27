@@ -17,5 +17,8 @@ namespace MiniMart.Models
 
         // 添加导航属性
         public Category? Category { get; set; } = null!;
+
+        // 导航属性：一个商品可能存在于多个购物车项中
+        public ICollection<CartItem> CartItems { get; set; }
     }
 }

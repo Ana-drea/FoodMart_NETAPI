@@ -35,12 +35,31 @@ namespace MiniMart.Controllers
 
             var userId = user.Id;
 
-            // 查找该用户的购物车
+            // 查找该用户的购物车，并加载 CartItems 和对应的 Product
             var cart = await _context.Carts
                 .Include(c => c.CartItems) // 加载购物车中的项目
+                    .ThenInclude(ci => ci.Product) // 加载购物车项目对应的商品
                 .FirstOrDefaultAsync(c => c.UserId == userId);
 
-            return Ok(user);
+
+            if (cart == null)
+            {
+                return NotFound(new { message = "Cart not found for the user." });
+            }
+
+            // 返回包含购物车和商品详细信息的数据
+            return Ok(new
+            {
+                cartId = cart.Id,
+                userId = cart.UserId,
+                items = cart.CartItems.Select(ci => new
+                {
+                    productId = ci.Product.Id,
+                    productName = ci.Product.Name,
+                    productPrice = ci.Product.Price,
+                    quantity = ci.Quantity
+                })
+            });
 
         }
 
