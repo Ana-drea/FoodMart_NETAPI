@@ -51,7 +51,7 @@ namespace MiniMart.Controllers
             return Ok(new
             {
                 cartId = cart.Id,
-                userId = cart.UserId,
+                totalPrice = cart.CartItems.Sum(ci => ci.Product.Price * ci.Quantity), // 计算总价
                 items = cart.CartItems.Select(ci => new
                 {
                     productId = ci.Product.Id,

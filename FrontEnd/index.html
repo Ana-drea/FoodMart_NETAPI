@@ -286,7 +286,7 @@
             <button class="border-0 bg-transparent d-flex flex-column gap-2 lh-1" type="button"
               data-bs-toggle="offcanvas" data-bs-target="#offcanvasCart" aria-controls="offcanvasCart">
               <span class="fs-6 text-muted dropdown-toggle">Your Cart</span>
-              <span class="cart-total fs-5 fw-bold">$1290.00</span>
+              <span class="cart-total fs-5 fw-bold">$0.00</span>
             </button>
           </div>
         </div>
@@ -3128,7 +3128,6 @@
         }
 
         const categoryId = activeTabPane.getAttribute('categoryId');
-        console.log('categoryId:', categoryId);  // 查看 categoryId 是否正确
 
         // 在当前激活 tab-pane 中查找 ID 为 'trending-product-grid' 的元素
         const productGrid = activeTabPane.querySelector('.trending-product-grid');
@@ -3270,11 +3269,13 @@
     function updateCart(data) {
       const cartList = document.querySelector('#offcanvasCart .list-group');
       const totalBadge = document.querySelector('#offcanvasCart .badge');
-      // const totalPriceElement = document.getElementById('totalPrice').querySelector('strong');
+      const totalPriceElement = document.querySelector('.cart-total');
 
+      // 更新主页 your cart下方总价
+      console.log(totalPriceElement);
+      totalPriceElement.textContent = `$${data.totalPrice.toFixed(2)}`;
       cartList.innerHTML = ''; // 清空现有内容
 
-      let totalPrice = 0;
       let totalQuantity = 0;
       data.items.forEach(item => {
         const cartItem = document.createElement('li');
@@ -3303,22 +3304,35 @@
         <span class="text-body-secondary">$${item.productPrice}</span>
       `;
         cartList.appendChild(cartItem);
-        totalPrice += item.productPrice * item.quantity;
         totalQuantity += item.quantity;
       });
-      console.log(totalPrice);
 
       // attach the final li element for total price
       const totalPriceItem = document.createElement('li');
       totalPriceItem.className = 'list-group-item d-flex justify-content-between';
       totalPriceItem.innerHTML = `            
             <span>Total</span>
-            <strong>$${totalPrice.toFixed(2)}</strong>
+            <strong>$${data.totalPrice.toFixed(2)}</strong>
             `;
       cartList.appendChild(totalPriceItem);
       // 更新总计数量
       totalBadge.textContent = totalQuantity;
       // totalPriceElement.textContent = `$${totalPrice.toFixed(2)}`;
+    }
+
+    // 清空购物车并提示登录
+    function clearCartAndPromptLogin() {
+      const cartElement = document.querySelector('#offcanvasCart .offcanvas-body'); // 定位购物车内容区域
+      if (cartElement) {
+        cartElement.innerHTML = `
+      <div class="text-center">
+        <p class="text-muted">Log in to see your saved items.</p>
+        <a href="login.html" class="btn btn-primary">Sign In</a> <!-- 替换为实际登录页面路径 -->
+      </div>
+    `;
+      } else {
+        console.error('Cart element not found!');
+      }
     }
 
     // 获取购物车数据并更新内容
@@ -3331,18 +3345,28 @@
         credentials: 'include' // 包含用户的身份认证信息
       }) // 确保后端正确处理此路径
         .then(response => {
+          if (response.status === 401) { // 检查未授权（用户未登录）
+            clearCartAndPromptLogin(); // 调用函数清空购物车并提示登录
+            return null;
+          }
           if (!response.ok) {
             throw new Error('Failed to fetch cart data');
           }
           return response.json();
         })
-        .then(data => updateCart(data))
+        .then(data => {
+          if (data) {
+            updateCart(data); // 如果 data 存在，才更新购物车
+          }
+        })
         .catch(error => console.error('Error:', error));
     }
+    // 页面加载时更新购物车
     document.addEventListener('DOMContentLoaded', fetchCartData);
 
     // 添加事件监听器到购物车按钮，点击按钮更新购物车
     document.querySelector('[data-bs-target="#offcanvasCart"]').addEventListener('click', fetchCartData);
+    document.querySelector('.cart.text-end.d-none.d-lg-block.dropdown').addEventListener('click', fetchCartData);
   </script>
 </body>
 
