@@ -66,7 +66,7 @@ namespace MiniMart.Controllers
         [HttpPost]
         public async Task<IActionResult> AddToCart([FromBody] CartItemDto cartItemDto)
         {
-            if (cartItemDto == null || cartItemDto.ProductId <= 0 || cartItemDto.Quantity <= 0)
+            if (cartItemDto == null || cartItemDto.ProductId <= 0 )
             {
                 return BadRequest("Invalid product ID or quantity.");
             }
