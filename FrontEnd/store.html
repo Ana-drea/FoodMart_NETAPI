@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stores</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Stores</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Address</th>
+                    <th>State</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="stores-table">
+                <!-- Stores will be populated here -->
+            </tbody>
+        </table>
+        <a href="addStore.html" class="btn btn-primary btn-sm">Add Store</a>
+    </div>
+
+    <script>
+        // Fetch stores from the API
+        fetch('https://localhost:7221/api/stores')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                const storesTable = document.getElementById('stores-table');
+
+                data.forEach(store => {
+                    const row = document.createElement('tr');
+
+                    const nameCell = document.createElement('td');
+                    nameCell.textContent = store.name;
+                    row.appendChild(nameCell);
+
+                    const addressCell = document.createElement('td');
+                    addressCell.textContent = store.address;
+                    row.appendChild(addressCell);
+
+                    const isActiveCell = document.createElement('td');
+                    isActiveCell.textContent = store.isActive?"Active":"Disabled";
+                    row.appendChild(isActiveCell);
+
+                    const actionsCell = document.createElement('td');
+                    actionsCell.innerHTML = `
+                        <a href="editStore.html?id=${store.id}" class="btn btn-warning btn-sm">Edit</a> | 
+                        <button class="btn btn-danger btn-sm delete-btn" data-id="${store.id}">Delete</button>
+                    `;
+                    row.appendChild(actionsCell);
+
+                    storesTable.appendChild(row);
+                });
+                // Attach event listeners to delete buttons
+                const deleteButtons = document.querySelectorAll('.delete-btn');
+                deleteButtons.forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        const storeId = event.target.getAttribute('data-id');
+                        if (confirm("Do you want to delete this store?")) {
+                            // Send DELETE request to the API
+                            fetch(`https://localhost:7221/api/stores/${storeId}`, {
+                                method: 'DELETE'
+                            })
+                            .then(response => {
+                                if (response.ok) {
+                                    alert("Store deleted successfully.");
+                                    // Remove the row from the table
+                                    event.target.closest('tr').remove();
+                                } else {
+                                    alert("Failed to delete store. Please try again.");
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error deleting store:', error);
+                                alert("An error occurred while deleting the store.");
+                            });
+                        }
+                    });
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching stores:', error);
+            });
+    </script>
+</body>
+</html>

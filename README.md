@@ -22,6 +22,12 @@ INSERT INTO Products (Id, Name, Description, CategoryId, Price, QuantityInStock)
 (4, 'Apple', 'Fresh organic apples, 1kg', 2, 3.99, 100),
 (5, 'Milk', '1-liter full cream milk', 2, 1.49, 200),
 (6, 'Bread', 'Whole grain bread, 400g', 2, 2.49, 150);
-```bash
+
+INSERT INTO Stores (Id, Name, Address, IsActive)
+VALUES
+    (1, 'Store 1', '123 Main St, City, Country', TRUE),
+    (2, 'Store 2', '456 Elm St, City, Country', TRUE),
+    (3, 'Store 3', '789 Oak St, City, Country', FALSE);
+```
 
 

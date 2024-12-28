@@ -15,6 +15,9 @@ namespace MiniMart.Data
         public DbSet<Product> Products { get; set; }
         public DbSet<Cart> Carts { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
+        public DbSet<Store> Stores { get; set; }
+        public DbSet<OrderHistory> OrderHistories { get; set; }
+        public DbSet<OrderItem> OrderItems { get; set; }
 
         // If additional model configuration is required, it can be done in this method
         protected override void OnModelCreating(ModelBuilder modelBuilder)
