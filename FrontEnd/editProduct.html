@@ -22,8 +22,11 @@
                 <textarea class="form-control" id="Description" name="Description"></textarea>
             </div>
             <div class="form-group">
-                <label for="CategoryId">Category Id</label>
-                <textarea class="form-control" id="CategoryId" name="CategoryId"></textarea>
+                <label for="CategoryId">Category</label>
+                <select class="form-control" id="CategoryId" name="CategoryId">
+                    <option value="" selected disabled>Select a category</option>
+                    <!-- Categories will be populated here -->
+                </select>
             </div>
             <div class="form-group">
                 <label for="Price">Price</label>
@@ -41,7 +44,7 @@
                 <img src="" id="ImageDisplay" style="width: 200px;" />
                 <input type="file" class="form-control" id="ImageUpload" name="ImageUpload" />
             </div>
-            <div class="form-group" >
+            <div class="form-group">
                 <label for="ImageUrl">Image URL</label>
                 <input type="text" class="form-control" id="ImageUrl" name="ImageUrl" />
             </div>
@@ -53,8 +56,8 @@
     <script src="js/jquery-1.11.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
-      crossorigin="anonymous"></script>
+        integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
+        crossorigin="anonymous"></script>
     <script src="js/plugins.js"></script>
     <script src="js/script.js"></script>
     <script>
@@ -76,16 +79,43 @@
                     // 成功获取类别数据后填充表单
                     $('#Name').val(productData.name);
                     $('#Description').val(productData.description);
-                    $('#CategoryId').val(productData.categoryId);  // 确保填充CategoryId字段
+                    // set the current category as default option
+                    $('#CategoryId').empty().append('<option value="${productData.categoryId}" selected disabled>${productData.category.name}</option>');
+                    loadCategories(productData.categoryId);
                     $('#Price').val(productData.price);  // 填充Price
                     $('#Quantity').val(productData.quantityInStock);  // 填充Quantity
                     $('#ImageDisplay').attr('src', productData.imageUrl).show();  // 填充Image缩略图
                     $('#ImageUrl').val(productData.imageUrl);  // 填充Image Url
+
+                    // Load categories in the dropdown
+                    loadCategories(productData.categoryId);
                 },
                 error: function (xhr, status, error) {
                     alert('An error occurred while fetching product data: ' + error);
                 }
             });
+
+            function loadCategories(selectedCategoryId) {
+                $.ajax({
+                    url: 'https://localhost:7221/api/categories',  // Assuming this endpoint returns all categories
+                    type: 'GET',
+                    success: function (categories) {
+                        var categorySelect = $('#CategoryId');
+
+                        // Populate the dropdown with categories
+                        categories.forEach(function (category) {
+                            categorySelect.append(
+                                `<option value="${category.id}" ${category.id == selectedCategoryId ? 'selected' : ''}>
+                        ${category.name}
+                    </option>`
+                            );
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        alert('An error occurred while loading categories: ' + error);
+                    }
+                });
+            }
 
             // 添加事件，根据上传图片更新url和缩略图
             const uploadElement = document.getElementById('ImageUpload');

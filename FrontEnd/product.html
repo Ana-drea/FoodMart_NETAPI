@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Products</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
+
 <body>
     <div class="container mt-5">
         <h2>Products</h2>
@@ -28,7 +30,7 @@
     </div>
 
     <script>
-document.addEventListener("DOMContentLoaded", () => {
+        document.addEventListener("DOMContentLoaded", () => {
             // 获取 URL 中的 categoryId 参数
             const urlParams = new URLSearchParams(window.location.search);
             const categoryId = urlParams.get('categoryId');
@@ -39,79 +41,83 @@ document.addEventListener("DOMContentLoaded", () => {
                 : `https://localhost:7221/api/products`;                     // 请求所有产品
 
             // 发送 GET 请求到 API
-            fetch(apiUrl)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                return response.json();
+            fetch(apiUrl, {
+                method: 'GET',
+                credentials: 'include'
             })
-            .then(data => {
-                const productsTable = document.getElementById('products-table');
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const productsTable = document.getElementById('products-table');
 
-                data.forEach(product => {
-                    const row = document.createElement('tr');
+                    data.forEach(product => {
+                        const row = document.createElement('tr');
 
-                    const nameCell = document.createElement('td');
-                    nameCell.textContent = product.name;
-                    row.appendChild(nameCell);
+                        const nameCell = document.createElement('td');
+                        nameCell.textContent = product.name;
+                        row.appendChild(nameCell);
 
-                    const descriptionCell = document.createElement('td');
-                    descriptionCell.textContent = product.description;
-                    row.appendChild(descriptionCell);
+                        const descriptionCell = document.createElement('td');
+                        descriptionCell.textContent = product.description;
+                        row.appendChild(descriptionCell);
 
-                    const categoryCell = document.createElement('td');
-                    categoryCell.textContent = product.categoryId;
-                    row.appendChild(categoryCell);
+                        const categoryCell = document.createElement('td');
+                        categoryCell.innerHTML = `<a href="product.html?categoryId=${product.category.id}" class="category-link">${product.category.name}</a>`;
+                        row.appendChild(categoryCell);
 
-                    const priceCell = document.createElement('td');
-                    priceCell.textContent = product.price;
-                    row.appendChild(priceCell);
+                        const priceCell = document.createElement('td');
+                        priceCell.textContent = product.price;
+                        row.appendChild(priceCell);
 
-                    const quantityCell = document.createElement('td');
-                    quantityCell.textContent = product.quantityInStock;
-                    row.appendChild(quantityCell);
+                        const quantityCell = document.createElement('td');
+                        quantityCell.textContent = product.quantityInStock;
+                        row.appendChild(quantityCell);
 
-                    const actionsCell = document.createElement('td');
-                    actionsCell.innerHTML = `
+                        const actionsCell = document.createElement('td');
+                        actionsCell.innerHTML = `
                         <a href="editProduct.html?id=${product.id}" class="btn btn-warning btn-sm">Edit</a> | 
                         <button class="btn btn-danger btn-sm delete-btn" data-id="${product.id}">Delete</button>
                     `;
-                    row.appendChild(actionsCell);
+                        row.appendChild(actionsCell);
 
-                    productsTable.appendChild(row);
-                });
-                // Attach event listeners to delete buttons
-                const deleteButtons = document.querySelectorAll('.delete-btn');
-                deleteButtons.forEach(button => {
-                    button.addEventListener('click', (event) => {
-                        const productId = event.target.getAttribute('data-id');
-                        if (confirm("Do you want to delete this product?")) {
-                            // Send DELETE request to the API
-                            fetch(`https://localhost:7221/api/products/${productId}`, {
-                                method: 'DELETE'
-                            })
-                            .then(response => {
-                                if (response.ok) {
-                                    alert("Product deleted successfully.");
-                                    // Remove the row from the table
-                                    event.target.closest('tr').remove();
-                                } else {
-                                    alert("Failed to delete product. Please try again.");
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Error deleting product:', error);
-                                alert("An error occurred while deleting the product.");
-                            });
-                        }
+                        productsTable.appendChild(row);
                     });
+                    // Attach event listeners to delete buttons
+                    const deleteButtons = document.querySelectorAll('.delete-btn');
+                    deleteButtons.forEach(button => {
+                        button.addEventListener('click', (event) => {
+                            const productId = event.target.getAttribute('data-id');
+                            if (confirm("Do you want to delete this product?")) {
+                                // Send DELETE request to the API
+                                fetch(`https://localhost:7221/api/products/${productId}`, {
+                                    method: 'DELETE'
+                                })
+                                    .then(response => {
+                                        if (response.ok) {
+                                            alert("Product deleted successfully.");
+                                            // Remove the row from the table
+                                            event.target.closest('tr').remove();
+                                        } else {
+                                            alert("Failed to delete product. Please try again.");
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error deleting product:', error);
+                                        alert("An error occurred while deleting the product.");
+                                    });
+                            }
+                        });
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching products:', error);
                 });
-            })
-            .catch(error => {
-                console.error('Error fetching products:', error);
-            });
         });
     </script>
 </body>
+
 </html>

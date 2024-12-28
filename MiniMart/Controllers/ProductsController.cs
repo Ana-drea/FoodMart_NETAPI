@@ -5,6 +5,7 @@ using MiniMart.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using MiniMart.Dtos;
 
 namespace MiniMart.Controllers
 {
@@ -22,7 +23,9 @@ namespace MiniMart.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> Get()
         {
-            var products = await _context.Products.ToListAsync();
+            var products = await _context.Products
+                                         .Include(p => p.Category) // Load related Category data
+                                         .ToListAsync();
             return Ok(products);
         }
 
@@ -34,6 +37,10 @@ namespace MiniMart.Controllers
             {
                 return NotFound();
             }
+            // load the category for the product
+            if (product.Category == null) {
+                product.Category= await _context.Categories.FirstOrDefaultAsync(c =>c.Id == product.CategoryId);
+                }
             return Ok(product);
         }
 
@@ -41,7 +48,8 @@ namespace MiniMart.Controllers
         public async Task<ActionResult<IEnumerable<Product>>> GetByCategoryId([FromRoute] int categoryId)
         {
             var products = await _context.Products
-                .Where(x => x.CategoryId == categoryId)
+                .Where(p => p.CategoryId == categoryId)
+                .Include(p => p.Category) // Load related Category data
                 .ToListAsync();
             if (products == null || !products.Any())
             {
@@ -51,19 +59,32 @@ namespace MiniMart.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Product>> Create([FromBody] Product product)
+        public async Task<ActionResult<Product>> Create([FromBody] ProductDto productDto)
         {
-            if (product == null)
+            if (productDto == null)
             {
                 return BadRequest();
             }
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             // search for Category by CategoryId 
-            var category = await _context.Categories.FindAsync(product.CategoryId);
+            var category = await _context.Categories.FindAsync(productDto.CategoryId);
             if (category == null)
             {
                 return NotFound("Category not found.");
             }
-
+            // change DTO into entity class
+            var product = new Product
+            {
+                Name = productDto.Name,
+                Description = productDto.Description,
+                CategoryId = productDto.CategoryId,
+                Price = productDto.Price,
+                QuantityInStock = productDto.QuantityInStock,
+                ImageUrl = productDto.ImageUrl
+            };
             // Ensure the product's Category is assigned
             product.Category = category;
             await _context.Products.AddAsync(product);
@@ -73,24 +94,24 @@ namespace MiniMart.Controllers
 
         [HttpPut]
         [Route("{id}")]
-        public async Task<ActionResult> Update([FromRoute] int id, [FromBody] Product product)
+        public async Task<ActionResult> Update([FromRoute] int id, [FromBody] ProductDto productDto)
         {
             var prod = _context.Products.FirstOrDefault(x => x.Id == id);
-            if (id != product.Id || prod == null)
+            if ( prod == null)
             {
                 return BadRequest();
             }
-            prod.Name = product.Name;
-            prod.Description = product.Description;
-            prod.CategoryId = product.CategoryId;
-            prod.Price = product.Price;
-            prod.QuantityInStock = product.QuantityInStock;
-            prod.ImageUrl = product.ImageUrl;
+            prod.Name = productDto.Name;
+            prod.Description = productDto.Description;
+            prod.CategoryId = productDto.CategoryId;
+            prod.Price = productDto.Price;
+            prod.QuantityInStock = productDto.QuantityInStock;
+            prod.ImageUrl = productDto.ImageUrl;
 
             // update Category
-            if (prod.CategoryId != product.CategoryId)
+            if (prod.CategoryId != productDto.CategoryId)
             {
-                var category = await _context.Categories.FindAsync(product.CategoryId);
+                var category = await _context.Categories.FindAsync(productDto.CategoryId);
                 if (category == null)
                 {
                     return NotFound("Category not found.");
