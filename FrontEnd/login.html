@@ -81,7 +81,7 @@
 
   <script>
     document.getElementById("loginBtn").addEventListener("click", function (event) {
-      // 阻止表单默认提交行为
+      // Prevent default form submission
       event.preventDefault();
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
@@ -108,7 +108,7 @@
       })
         .then((response) => {
           if (!response.ok) {
-            // 如果返回不是 2xx，抛出错误
+            // If the response status is not 2xx，throw an error
             return response.text().then((text) => {
               throw new Error(text || "Registration failed.");
             });
@@ -121,7 +121,7 @@
           // const token = localStorage.getItem("bearerToken");
 
           alert("Login successful!");
-          // 登录成功后跳转到indexindex页面
+          // Redirect to index page after logging in
           window.location.href = "index.html";
         })
         .catch((error) => {

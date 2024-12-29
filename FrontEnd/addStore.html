@@ -34,10 +34,10 @@
     <script>
         $(document).ready(function() {
             $('#addStoreForm').on('submit', function(e) {
-                e.preventDefault(); // 防止默认的表单提交
+                e.preventDefault();
 
                 var storeData = {
-                    // add 页面url无 storeId
+                    // no storeId needed for adding a new store
                     Name: $('#Name').val(),
                     Address: $('#Address').val(),
                     IsActive: $('#IsActive').is(':checked')
@@ -45,7 +45,7 @@
 
                 $.ajax({
                     url: 'https://localhost:7221/api/stores',
-                    type: 'POST',  // 使用 POST 请求进行编辑操作
+                    type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify(storeData),
                     success: function(response) {

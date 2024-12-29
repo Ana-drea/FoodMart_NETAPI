@@ -25,18 +25,18 @@
                 <label for="CategoryId">Category</label>
                 <select class="form-control" id="CategoryId" name="CategoryId">
                     <option value="" selected disabled>Select a category</option>
-                    <!-- Categories will be populated here -->
+                    <!-- Products will be populated here -->
                 </select>
             </div>
             <div class="form-group">
                 <label for="Price">Price</label>
                 <input class="form-control" type="number" id="Price" name="Price" step="0.01" min="0" />
-                <!-- step="0.01" 保证用户只能输入两位小数，min="0" 限制价格不能为负数 -->
+                <!-- step="0.01" only allows up to two decimal places, min="0" restricts the price from being negative -->
             </div>
             <div class="form-group">
                 <label for="Quantity">Quantity In Stock</label>
                 <input class="form-control" type="number" id="Quantity" name="Quantity" step="1" min="0" />
-                <!-- step="1" 保证用户只能输入整数，min="0" 限制库存不能为负数 -->
+                <!-- step="1" only allows interger input，min="0" restricts the quantity in stock from being negative -->
             </div>
             <div class="form-group">
                 <label for="ImageUpload">Image Upload</label>
@@ -60,9 +60,9 @@
     <script src="js/plugins.js"></script>
     <script src="js/script.js"></script>
     <script>
-        // Function to fetch categories and update the dropdown
+        // Fetch categories and update the dropdown list
         function updateCategoriesDropdown() {
-            fetch('https://localhost:7221/api/categories') 
+            fetch('https://localhost:7221/api/categories')
                 .then(response => response.json())
                 .then(categories => {
                     const categorySelect = document.getElementById('CategoryId');
@@ -83,7 +83,7 @@
         // Call this function on page load to populate the dropdown initially
         document.addEventListener('DOMContentLoaded', updateCategoriesDropdown);
 
-        // 添加事件，根据上传图片更新url和缩略图
+        // Update the URL and thumbnail img based on the uploaded image
         const uploadElement = document.getElementById('ImageUpload');
         const imageUrlElement = document.getElementById('ImageUrl');
         const imageDisplayElement = document.getElementById('ImageDisplay');
@@ -94,21 +94,21 @@
 
         $(document).ready(function () {
             $('#addProductForm').on('submit', function (e) {
-                e.preventDefault(); // 防止默认的表单提交
+                e.preventDefault();
 
                 var productData = {
-                    // add 页面url无 productId
+                    // no storeId needed for adding a new store
                     Name: $('#Name').val(),
                     Description: $('#Description').val(),
                     CategoryId: $('#CategoryId').val(),
                     Price: $('#Price').val(),
                     QuantityInStock: $('#Quantity').val(),
-                    ImageUrl: $('#ImageUrl').val() // 添加 ImageUrl 的值
+                    ImageUrl: $('#ImageUrl').val()
                 };
 
                 $.ajax({
                     url: 'https://localhost:7221/api/products',
-                    type: 'POST',  // 使用 POST 请求进行编辑操作
+                    type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify(productData),
                     success: function (response) {

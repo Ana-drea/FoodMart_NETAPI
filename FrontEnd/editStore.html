@@ -35,20 +35,20 @@
 
     <script>
         $(document).ready(function () {
-            // 从 URL 获取 storeId
+            // Get storeId from URL
             const urlParams = new URLSearchParams(window.location.search);
-            const storeId = urlParams.get('id');  // 假设 URL 中是 ?id=123
+            const storeId = urlParams.get('id');
 
             if (!storeId) {
                 alert('Store ID is missing in the URL!');
                 return;
             }
-            // 向后端请求 store 数据
+            // Fetch the store data from backend
             $.ajax({
                 url: 'https://localhost:7221/api/stores/' + storeId,  // 使用正确的 URL
                 type: 'GET',
                 success: function (storeData) {
-                    // Populate the store form with data from the backend
+                    // Populate the store form
                     $('#Name').val(storeData.name);
                     $('#Address').val(storeData.address);
                     // Set the checkbox state based on the isActive value from the backend
@@ -64,10 +64,10 @@
             });
 
             $('#editStoreForm').on('submit', function (e) {
-                e.preventDefault(); // 防止默认的表单提交
+                e.preventDefault();
 
                 var storeData = {
-                    Id: storeId,  // 添加 storeId
+                    Id: storeId,  // Add storeId
                     Name: $('#Name').val(),
                     Address: $('#Address').val(),
                     IsActive: $('#IsActive').is(':checked')
@@ -75,7 +75,7 @@
 
                 $.ajax({
                     url: 'https://localhost:7221/api/stores/' + storeId,  // 使用 storeId
-                    type: 'PUT',  // 使用 PUT 请求进行编辑操作
+                    type: 'PUT',  // Use PUT request for store edition
                     contentType: 'application/json',
                     data: JSON.stringify(storeData),
                     success: function (response) {

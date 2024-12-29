@@ -25,18 +25,18 @@
                 <label for="CategoryId">Category</label>
                 <select class="form-control" id="CategoryId" name="CategoryId">
                     <option value="" selected disabled>Select a category</option>
-                    <!-- Categories will be populated here -->
+                    <!-- Products will be populated here -->
                 </select>
             </div>
             <div class="form-group">
                 <label for="Price">Price</label>
                 <input class="form-control" type="number" id="Price" name="Price" step="0.01" min="0" />
-                <!-- step="0.01" 保证用户只能输入两位小数，min="0" 限制价格不能为负数 -->
+                <!-- step="0.01" only allows up to two decimal places, min="0" restricts the price from being negative -->
             </div>
             <div class="form-group">
                 <label for="Quantity">Quantity In Stock</label>
                 <input class="form-control" type="number" id="Quantity" name="Quantity" step="1" min="0" />
-                <!-- step="1" 保证用户只能输入整数，min="0" 限制库存不能为负数 -->
+                <!-- step="1" only allows interger input，min="0" restricts the quantity in stock from being negative -->
             </div>
             <div class="form-group">
                 <label for="ImageUpload">Change Image</label>
@@ -62,7 +62,7 @@
     <script src="js/script.js"></script>
     <script>
         $(document).ready(function () {
-            // 从 URL 获取 categoryId
+            // Get productId from URL
             const urlParams = new URLSearchParams(window.location.search);
             const productId = urlParams.get('id');  // 假设 URL 中是 ?id=123
 
@@ -70,25 +70,21 @@
                 alert('Product ID is missing in the URL!');
                 return;
             }
-            // 向后端请求 product 数据并预填入表单
+            // Request products data from the backend and prefill the form
             $.ajax({
-                url: 'https://localhost:7221/api/products/' + productId,  // 使用正确的 URL
+                url: 'https://localhost:7221/api/products/' + productId,
                 type: 'GET',
-                cache: false,  // 禁用缓存
+                cache: false,  // Disable caching
                 success: function (productData) {
-                    // 成功获取类别数据后填充表单
+                    // populate the form
                     $('#Name').val(productData.name);
                     $('#Description').val(productData.description);
-                    // set the current category as default option
-                    $('#CategoryId').empty().append('<option value="${productData.categoryId}" selected disabled>${productData.category.name}</option>');
+                    // Load categories in the dropdown and set current category as selected
                     loadCategories(productData.categoryId);
-                    $('#Price').val(productData.price);  // 填充Price
-                    $('#Quantity').val(productData.quantityInStock);  // 填充Quantity
-                    $('#ImageDisplay').attr('src', productData.imageUrl).show();  // 填充Image缩略图
-                    $('#ImageUrl').val(productData.imageUrl);  // 填充Image Url
-
-                    // Load categories in the dropdown
-                    loadCategories(productData.categoryId);
+                    $('#Price').val(productData.price);
+                    $('#Quantity').val(productData.quantityInStock);
+                    $('#ImageDisplay').attr('src', productData.imageUrl).show();
+                    $('#ImageUrl').val(productData.imageUrl);
                 },
                 error: function (xhr, status, error) {
                     alert('An error occurred while fetching product data: ' + error);
@@ -101,6 +97,7 @@
                     type: 'GET',
                     success: function (categories) {
                         var categorySelect = $('#CategoryId');
+                        categorySelect.empty();
 
                         // Populate the dropdown with categories
                         categories.forEach(function (category) {
@@ -117,7 +114,7 @@
                 });
             }
 
-            // 添加事件，根据上传图片更新url和缩略图
+            // Update the URL and thumbnail img based on the uploaded image
             const uploadElement = document.getElementById('ImageUpload');
             const imageUrlElement = document.getElementById('ImageUrl');
             const imageDisplayElement = document.getElementById('ImageDisplay');
@@ -127,23 +124,23 @@
             });
 
 
-            // 点击sumbit后提交更新 product 数据
+            // Click sumbit to edit product data
             $('#editProductForm').on('submit', function (e) {
-                e.preventDefault(); // 防止默认的表单提交
-
+                e.preventDefault();
+                // Get data from web form
                 var productData = {
-                    Id: productId,  // 添加 productId
+                    Id: productId,
                     Name: $('#Name').val(),
                     Description: $('#Description').val(),
-                    CategoryId: $('#CategoryId').val(),  // 获取 CategoryId 的值
-                    Price: $('#Price').val(),  // 获取 Price 的值
-                    QuantityInStock: $('#Quantity').val(),  // 获取 Quantity 的值
-                    ImageUrl: $('#ImageUrl').val()  // 获取 ImageUrl 的值
+                    CategoryId: $('#CategoryId').val(),
+                    Price: $('#Price').val(),
+                    QuantityInStock: $('#Quantity').val(),
+                    ImageUrl: $('#ImageUrl').val()
                 };
 
                 $.ajax({
                     url: 'https://localhost:7221/api/products/' + productId,  // 使用 productId
-                    type: 'PUT',  // 使用 PUT 请求进行编辑操作
+                    type: 'PUT',  // Perform product edition using PUT request
                     contentType: 'application/json',
                     data: JSON.stringify(productData),
                     success: function (response) {

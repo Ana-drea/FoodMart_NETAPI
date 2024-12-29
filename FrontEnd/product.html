@@ -31,16 +31,16 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            // 获取 URL 中的 categoryId 参数
+            // Get categoryId from URL
             const urlParams = new URLSearchParams(window.location.search);
             const categoryId = urlParams.get('categoryId');
 
-            // 构建 API 请求的 URL
+            // Construct URLs for API requests w/ and  w/o categoryId
             const apiUrl = categoryId
                 ? `https://localhost:7221/api/products/category/${categoryId}` // 请求指定类别的产品
                 : `https://localhost:7221/api/products`;                     // 请求所有产品
 
-            // 发送 GET 请求到 API
+            // Send GET request to API
             fetch(apiUrl, {
                 method: 'GET',
                 credentials: 'include'

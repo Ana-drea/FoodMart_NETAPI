@@ -28,17 +28,16 @@
     <script>
         $(document).ready(function() {
             $('#addCategoryForm').on('submit', function(e) {
-                e.preventDefault(); // 防止默认的表单提交
+                e.preventDefault();
 
                 var categoryData = {
-                    // add 页面url无 categoryId
                     Name: $('#Name').val(),
                     Description: $('#Description').val()
                 };
 
                 $.ajax({
                     url: 'https://localhost:7221/api/categories',
-                    type: 'POST',  // 使用 POST 请求进行编辑操作
+                    type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify(categoryData),
                     success: function(response) {
