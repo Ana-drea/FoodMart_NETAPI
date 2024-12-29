@@ -13,5 +13,7 @@ namespace MiniMart.Models
         public List<OrderItem> OrderItems { get; set; } = new List<OrderItem>(); // Collection of order items
         public int StoreId { get; set; }
         public Store Store { get; set; } // Related Store
+        public string PhoneNumber { get; set; }  // Phone number (10 digits)
+        public bool IsCompleted { get; set; }    // Indicates if the order is paid
     }
 }
