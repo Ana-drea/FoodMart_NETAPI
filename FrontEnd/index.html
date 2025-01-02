@@ -137,7 +137,7 @@
           </li>
         </ul>
 
-        <button class="w-100 btn btn-primary btn-lg" type="submit">Continue to checkout</button>
+        <a class="w-100 btn btn-primary btn-lg" type="submit" href="checkout.html">Continue to checkout</a>
       </div>
     </div>
   </div>
@@ -3233,55 +3233,55 @@
     });
 
 
-    // （点击购物车+-按钮后）更新商品数量并发送请求 
+    // Update product quantity and send request after clicking the cart +/- buttons
     function updateQuantity(productElement, { quantity = null, change = null }) {
       const quantityInput = productElement.querySelector('[name="quantity"]');
       let currentQuantity = parseInt(quantityInput.value);
 
-      // 获取商品的 productId
+      // Get productId
       const productId = productElement.querySelector('[data-product-id]').dataset.productId;
 
-      // 计算新的数量
+      // Calculate new quantity
       let newQuantity;
       if (quantity !== null) {
-        // 如果传入的是 quantity，则直接更新为该值
+        // If it's quantity that's passed in, update to that value
         newQuantity = quantity;
       } else if (change !== null) {
-        // 如果传入的是 change，则在现有数量基础上加上变化量
+        // If it's change that's passed in, add that value to current quantity
         newQuantity = currentQuantity + change;
       } else {
         console.error('Either quantity or change must be provided.');
         return;
       }
 
-      // 数量不能小于 0
+      // The new quantity can't be less than 0
       if (newQuantity < 0) {
         console.error('Quantity cannot be less than 0.');
         return;
       }
 
-      // 更新数量输入框的值
+      // Update value in input field
       quantityInput.value = newQuantity;
 
-      // 准备请求的 payload
+      // Prepare the request payload
       const payload = {
         productId: productId,
       };
 
       if (quantity !== null) {
-        payload.quantity = newQuantity; // 直接更新数量
+        payload.quantity = newQuantity; // Use quantity
       } else if (change !== null) {
-        payload.change = change; // 使用变化量
+        payload.change = change; // Use change
       }
 
-      // 发送 POST 请求到后端
+      // Send POST request to backend
       fetch('https://localhost:7221/api/carts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'accept': 'application/json'
         },
-        credentials: 'include', // 包含用户的身份认证信息
+        credentials: 'include', // include user credentials
         body: JSON.stringify(payload)
       })
         .then((response) => {
@@ -3291,26 +3291,26 @@
           return response.json();
         })
         .then((data) => {
-          fetchCartData(); // 调用现有函数更新购物车内容
+          fetchCartData(); // call function to update cart data
         })
         .catch((error) => console.error('Error:', error));
     }
 
-    // 绑定监听到购物车中的每一个商品数量按钮
+    // Bind listeners to the quantity buttons of each item in the shopping cart
     function bindCartQuantityEvents(cartList) {
       const productElements = cartList.querySelectorAll('.product-qty');
 
       productElements.forEach((productElement) => {
-        // 绑定“加号”按钮事件
+        // Bind "+" button event
         productElement.querySelector('.quantity-right-plus').addEventListener('click', (e) => {
           e.preventDefault();
-          updateQuantity(productElement, { change: 1 }); // 增加数量
+          updateQuantity(productElement, { change: 1 }); // Increment quantity
         });
 
-        // 绑定“减号”按钮事件
+        // Bind "-" button event
         productElement.querySelector('.quantity-left-minus').addEventListener('click', (e) => {
           e.preventDefault();
-          updateQuantity(productElement, { change: -1 }); // 减少数量
+          updateQuantity(productElement, { change: -1 }); // Decrement quantity
         });
 
         // bind change quantity input event
@@ -3329,7 +3329,7 @@
       });
     }
 
-    // 更新购物车内容
+    // Update content of the cart
     function updateCart(data) {
       const cartList = document.querySelector('#offcanvasCart .list-group');
       const totalBadge = document.querySelector('#offcanvasCart .badge');
@@ -3383,7 +3383,7 @@
   `;
       cartList.appendChild(totalPriceItem);
 
-      // 更新总计数量
+      // Update total quantity
       totalBadge.textContent = totalQuantity;
 
       bindCartQuantityEvents(cartList)
@@ -3405,22 +3405,21 @@
     }
 
 
-    // 获取购物车数据并更新内容
+    // Fetch cart data and update
     function fetchCartData() {
       fetch('https://localhost:7221/api/carts', {
         headers: {
           'Content-Type': 'application/json',
           'accept': 'application/json'
         },
-        credentials: 'include' // 包含用户的身份认证信息
-      }) // 确保后端正确处理此路径
+        credentials: 'include' // Include user credentials
+      }) // Ensure the backend handles the route correctly
         .then(response => {
-          if (response.status === 401) { // 检查未授权（用户未登录）
-            clearCartAndPromptLogin(); // 调用函数清空购物车并提示登录
+          if (response.status === 401) { // Check for unauthorized access (user not logged in)
+            clearCartAndPromptLogin(); // Call the function to clear the cart and prompt for log in
             return null;
           }
           if (response.status === 404) {
-            //showEmptyCart(); // 调用函数显示空购物车
             updateCart();
             return null;
           }
@@ -3431,18 +3430,18 @@
         })
         .then(data => {
           if (data) {
-            updateCart(data); // 如果 data 存在，才更新购物车
+            updateCart(data); // Only update the cart if the cart data exists
           }
         })
         .catch(error => console.error('Error:', error));
     }
 
-    // 页面加载时绑定购物车数量按钮点击事件
+    // Bind cart quantity button click events on page load
     document.addEventListener('DOMContentLoaded', () => {
       bindCartQuantityEvents();
     });
 
-    // 页面加载时更新购物车
+    // Update the cart data on page load
     document.addEventListener('DOMContentLoaded', fetchCartData);
 
     // 添加事件监听器到购物车按钮，点击按钮更新购物车

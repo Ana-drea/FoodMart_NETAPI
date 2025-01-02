@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="css/vendor.css">
+    <link rel="stylesheet" type="text/css" href="style.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&family=Open+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+        <defs>
+
+            <symbol xmlns="http://www.w3.org/2000/svg" id="plus" viewBox="0 0 24 24">
+                <path fill="currentColor"
+                    d="M19 11h-6V5a1 1 0 0 0-2 0v6H5a1 1 0 0 0 0 2h6v6a1 1 0 0 0 2 0v-6h6a1 1 0 0 0 0-2Z" />
+            </symbol>
+            <symbol xmlns="http://www.w3.org/2000/svg" id="minus" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M19 11H5a1 1 0 0 0 0 2h14a1 1 0 0 0 0-2Z" />
+            </symbol>
+        </defs>
+    </svg>
+    <div class="container mt-5">
+        <h2>Checkout</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="cart-table">
+                <!-- Categories will be populated here -->
+            </tbody>
+        </table>
+        <a class="w-100 btn btn-primary btn-lg" type="submit" href="checkout.html">Checkout</a>
+    </div>
+    <script src="js/jquery-1.11.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
+        crossorigin="anonymous"></script>
+    <script src="js/plugins.js"></script>
+    <script src="js/script.js"></script>
+    <script>
+        // Update product quantity and send request after clicking the cart +/- buttons
+        function updateQuantity(productElement, { quantity = null, change = null }) {
+            const quantityInput = productElement.querySelector('[name="quantity"]');
+            let currentQuantity = parseInt(quantityInput.value);
+
+            // Get productId
+            const productId = productElement.querySelector('[data-product-id]').dataset.productId;
+
+            // Calculate new quantity
+            let newQuantity;
+            if (quantity !== null) {
+                // If it's quantity that's passed in, update to that value
+                newQuantity = quantity;
+            } else if (change !== null) {
+                // If it's change that's passed in, add that value to current quantity
+                newQuantity = currentQuantity + change;
+            } else {
+                console.error('Either quantity or change must be provided.');
+                return;
+            }
+
+            // The new quantity can't be less than 0
+            if (newQuantity < 0) {
+                console.error('Quantity cannot be less than 0.');
+                return;
+            }
+
+            // Update value in input field
+            quantityInput.value = newQuantity;
+
+            // Prepare the request payload
+            const payload = {
+                productId: productId,
+            };
+
+            if (quantity !== null) {
+                payload.quantity = newQuantity; // Use quantity
+            } else if (change !== null) {
+                payload.change = change; // Use change
+            }
+
+            // Send POST request to backend
+            fetch('https://localhost:7221/api/carts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'accept': 'application/json'
+                },
+                credentials: 'include', // include user credentials
+                body: JSON.stringify(payload)
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error('Failed to update cart');
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    fetchCartData(); // call function to update cart data
+                })
+                .catch((error) => console.error('Error:', error));
+        }
+
+        // Bind listeners to the quantity buttons of each item in the shopping cart
+        function bindCartQuantityEvents(cartList) {
+            const productElements = cartList.querySelectorAll('.product-qty');
+
+            productElements.forEach((productElement) => {
+                // Bind "+" button event
+                productElement.querySelector('.quantity-right-plus').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    updateQuantity(productElement, { change: 1 }); // Increment quantity
+                });
+
+                // Bind "-" button event
+                productElement.querySelector('.quantity-left-minus').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    updateQuantity(productElement, { change: -1 }); // Decrement quantity
+                });
+
+                // bind change quantity input event
+                const quantityInput = productElement.querySelector('[name="quantity"]');
+                quantityInput.addEventListener('change', (e) => {
+                    const newQuantity = parseInt(e.target.value);
+                    if (isNaN(newQuantity) || newQuantity < 0) {
+                        // if the input is less than 0 or invalid, revert to previous value
+                        e.target.value = parseInt(quantityInput.dataset.previousValue || 0);
+                        return;
+                    }
+                    // record the new value and update quantity in frontend and backend
+                    quantityInput.dataset.previousValue = newQuantity;
+                    updateQuantity(productElement, { quantity: newQuantity });
+                });
+            });
+        }
+
+        // Update content of the cart
+        function updateCart(data) {
+            const cartList = document.getElementById('cart-table');
+            // const totalBadge = document.querySelector('#offcanvasCart .badge');
+            // const totalPriceElement = document.getElementById('');
+
+            cartList.innerHTML = ''; // Clear current content inside cart table
+
+            let totalQuantity = 0;
+            // if there are cart items, populate the cart
+            if (data != null) {
+                data.items.forEach(item => {
+                    const cartItem = document.createElement('li');
+                    cartItem.className = 'list-group-item d-flex justify-content-between lh-sm';
+                    cartItem.innerHTML = `
+      <div>
+        <h6 class="my-0">${item.productName}</h6>
+        <div class="input-group product-qty">
+          <span class="input-group-btn">
+            <button type="button" class="quantity-left-minus btn btn-sm btn-number" data-type="minus">
+              <svg width="16" height="16">
+                <use xlink:href="#minus"></use>
+              </svg>
+            </button>
+          </span>
+          <input type="text" name="quantity" class="form-control input-number" value="${item.quantity}" style="width: 60px;text-align: center; ">
+          <span class="input-group-btn">
+            <button type="button" class="quantity-right-plus btn btn-sm btn-number" data-type="plus">
+              <svg width="16" height="16">
+                <use xlink:href="#plus"></use>
+              </svg>
+            </button>
+          </span>
+          <span class="text-body-secondary" data-product-id="${item.productId}" style="display:none"></span>
+        </div>
+      </div>
+      <span class="text-body-secondary">$${(item.quantity * item.productPrice).toFixed(2)}</span>
+    `;
+                    totalQuantity += item.quantity;
+                    cartList.appendChild(cartItem);
+
+                });
+            }
+            // attach the final li element for total price, price will be 0 if cart is empty
+            const totalPriceItem = document.createElement('li');
+            totalPriceItem.className = 'list-group-item d-flex justify-content-between';
+            totalPriceItem.innerHTML = `            
+    <span>Total Amount</span>
+    <strong>$${(data?.totalPrice || 0).toFixed(2)}</strong>
+  `;
+            cartList.appendChild(totalPriceItem);
+
+            // Update total quantity
+            // totalBadge.textContent = totalQuantity;
+
+            bindCartQuantityEvents(cartList)
+        }
+
+        // Fetch cart data and update
+        function fetchCartData() {
+            fetch('https://localhost:7221/api/carts', {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'accept': 'application/json'
+                },
+                credentials: 'include' // Include user credentials
+            }) // Ensure the backend handles the route correctly
+                .then(response => {
+                    if (response.status === 401) { // Check for unauthorized access (user not logged in)
+                        clearCartAndPromptLogin(); // Call the function to clear the cart and prompt for log in
+                        return null;
+                    }
+                    if (response.status === 404) {
+                        updateCart();
+                        return null;
+                    }
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch cart data');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data) {
+                        updateCart(data); // Only update the cart if the cart data exists
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Bind cart quantity button click events on page load
+        // document.addEventListener('DOMContentLoaded', () => {
+        //     bindCartQuantityEvents();
+        // });
+
+        // Update the cart data on page load
+        document.addEventListener('DOMContentLoaded', fetchCartData);
+    </script>
+</body>
+
+</html>

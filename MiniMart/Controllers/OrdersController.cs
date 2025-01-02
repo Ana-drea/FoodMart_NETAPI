@@ -23,7 +23,7 @@ namespace MiniMart.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> PostOrder([FromBody] OrderHistoryDto orderHistoryDto)
+        public async Task<IActionResult> Checkout([FromBody] OrderHistoryDto orderHistoryDto)
         {
             // 1. Validate the model
             if (!ModelState.IsValid)
