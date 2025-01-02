@@ -93,7 +93,7 @@
 
             function loadCategories(selectedCategoryId) {
                 $.ajax({
-                    url: 'https://localhost:7221/api/categories',  // Assuming this endpoint returns all categories
+                    url: 'https://localhost:7221/api/categories',
                     type: 'GET',
                     success: function (categories) {
                         var categorySelect = $('#CategoryId');

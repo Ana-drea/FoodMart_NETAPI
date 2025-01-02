@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MiniMart.Data;
 using MiniMart.Dtos;
 using MiniMart.Models;
@@ -40,9 +41,11 @@ namespace MiniMart.Controllers
 
             var userId = user.Id;
 
-            // Retrieve the user's cart
-            var cart = _context.Carts
-                .FirstOrDefault(c => c.UserId == userId);
+            // search for cart of that user, load CartItems and corresponding Product
+            var cart = await _context.Carts
+                .Include(c => c.CartItems)
+                    .ThenInclude(ci => ci.Product)
+                .FirstOrDefaultAsync(c => c.UserId == userId);
 
             if (cart == null || !cart.CartItems.Any())
             {
@@ -54,13 +57,15 @@ namespace MiniMart.Controllers
             var random = new Random(seed);
             var randomDigits = random.Next(100000, 999999); // Generate a 6-digit random number
             var orderNumber = $"NO{orderHistoryDto.OrderDate:yyyyMMdd}-{randomDigits}"; // Format the order number as NOyyyyMMdd-XXXXXX
-            
+
             // 4. Create a new OrderHistory instance
             var orderHistory = new OrderHistory
             {
-                UserId = userId,
+
                 OrderNumber = orderNumber,
+                UserId = userId,
                 OrderDate = orderHistoryDto.OrderDate,
+                TotalAmount = 0,
                 StoreId = orderHistoryDto.StoreId,
                 PhoneNumber = orderHistoryDto.PhoneNumber,
                 IsCompleted = false, // Default to not completed
@@ -71,7 +76,8 @@ namespace MiniMart.Controllers
             foreach (var cartItem in cart.CartItems)
             {
                 // Check the product's stock
-                var product = _context.Products.FirstOrDefault(p => p.Id == cartItem.ProductId);
+                // var product = _context.Products.FirstOrDefault(p => p.Id == cartItem.ProductId);
+                var product = cartItem.Product;
                 if (product == null)
                 {
                     return BadRequest($"Product with ID {cartItem.ProductId} does not exist."); // If the product does not exist, return an error
@@ -84,6 +90,9 @@ namespace MiniMart.Controllers
 
                 // Reduce the product's stock
                 product.QuantityInStock -= cartItem.Quantity;
+
+                // Add the amount to total amount
+                orderHistory.TotalAmount += product.Price*cartItem.Quantity;
 
                 // Convert CartItem to OrderItem
                 var orderItem = new OrderItem
@@ -107,7 +116,7 @@ namespace MiniMart.Controllers
             // Commit the changes to the database
             await _context.SaveChangesAsync();
 
-            return Ok(); 
+            return Ok();
         }
     }
 }
