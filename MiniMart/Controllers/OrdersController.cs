@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using CloudinaryDotNet.Actions;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MiniMart.Data;
 using MiniMart.Dtos;
 using MiniMart.Models;
+using MiniMart.Services;
+using Stripe;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,11 +19,13 @@ namespace MiniMart.Controllers
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly AppDbContext _context;
+        private readonly PaymentService _paymentService;
 
-        public OrdersController(UserManager<IdentityUser> userManager, AppDbContext context)
+        public OrdersController(UserManager<IdentityUser> userManager, AppDbContext context, PaymentService paymentService)
         {
             _userManager = userManager;
             _context = context;
+            _paymentService = paymentService;
         }
 
         [HttpPost]
@@ -116,6 +121,24 @@ namespace MiniMart.Controllers
             // Commit the changes to the database
             await _context.SaveChangesAsync();
 
+            // Create Stripe payment intent
+            // 1. Ensure the amount is valid
+            if (orderHistory.TotalAmount <= 0)
+            {
+                return BadRequest("Invalid amount.");
+            }
+            var amount = (long)(orderHistory.TotalAmount * 100);
+
+            // 2. Create the payment intent with the dynamic amount
+            try
+            {
+                var clientSecret = await _paymentService.CreatePaymentIntentAsync(amount);
+                return Ok(new { clientSecret });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
             return Ok();
         }
     }
