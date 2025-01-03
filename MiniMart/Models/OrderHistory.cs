@@ -5,7 +5,7 @@ namespace MiniMart.Models
     public class OrderHistory
     {
         public int Id { get; set; }
-        public string OrderNumber { get; set; }
+        public string? StripePI { get; set; }
         public string UserId { get; set; }
         public IdentityUser? User { get; set; }  // Optional user property
         public DateTime OrderDate { get; set; }

@@ -3059,7 +3059,7 @@
         tabContent.insertAdjacentHTML(
           'beforeend',
           `<div class="tab-pane fade ${isActive}" id="${targetId}" role="tabpanel" aria-labelledby="${tab.id}" categoryId="${categoryId}">
-                <!-- 这里是每个 tab 的内容 -->
+                <!-- Here will be content for each tab -->
                 <div class="row trending-product-grid"></div>
             </div>`
         );
@@ -3074,12 +3074,12 @@
         const activeTabPane = document.querySelector('.tab-pane.show.active');
         if (!activeTabPane) {
           console.log('No active tab pane found');
-          return;  // 退出函数，防止后续错误
+          return;  // Exit to prevent errors
         }
 
         const categoryId = activeTabPane.getAttribute('categoryId');
 
-        // 在当前激活 tab-pane 中查找 ID 为 'trending-product-grid' 的元素
+        // Search for 'trending-product-grid' element within current active tab-pane
         const productGrid = activeTabPane.querySelector('.trending-product-grid');
 
         if (!productGrid) {
@@ -3087,13 +3087,12 @@
           return;
         }
 
-        // 清空旧的产品内容
+        // Clear out product grid
         productGrid.innerHTML = '';
 
-        // 遍历产品数据并插入
-        // 遍历产品数据，生成 HTML 并插入
+        // Loop through products data, create HTML and insert
         products.forEach(product => {
-          // 动态生成产品 HTML
+          // Create dynamic HTML for product
           const productHTML = `
                 <div class="col">
                     <div class="product-item">
@@ -3131,7 +3130,7 @@
                 </div>
                 `;
 
-          // 插入生成的 HTML 到产品网格容器
+          // Insert product HTML into product grid
           productGrid.insertAdjacentHTML('beforeend', productHTML);
         });
 
@@ -3160,18 +3159,17 @@
             addToCartButton.addEventListener('click', event => {
               event.preventDefault();
 
-              // 获取 productId 和 quantity
+              // Get productId and quantity
               const productId = productElement.querySelector('#productId').value;
               const quantity = quantityInput.value;
 
-              // 向后端发送 POST 请求
               fetch('https://localhost:7221/api/carts', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
                   'accept': 'application/json'
                 },
-                credentials: 'include', // 包含用户的身份认证信息
+                credentials: 'include',
                 body: JSON.stringify({
                   productId: productId,
                   change: quantity
@@ -3196,7 +3194,7 @@
             });
           }
         });
-      }, 200);  // 延迟 500ms，等待 DOM 完成渲染
+      }, 200);  // Wait for 500ms to complete DOM rendering
     }
 
     function fetchProductsNPopulate(categoryId) {
@@ -3204,7 +3202,7 @@
         ? `https://localhost:7221/api/products/category/${categoryId}`
         : 'https://localhost:7221/api/products';
 
-      // 通过 API 获取产品数据并填充
+      // Fetch products data from API and populate
       fetch(apiUrl)
         .then(response => {
           if (!response.ok) {
@@ -3220,12 +3218,13 @@
         });
     }
 
-    // 页面加载时调用，获取所有产品
+    // Fetch all products when page loads
     document.addEventListener('DOMContentLoaded', () => {
       fetchProductsNPopulate();
     });
 
-    // 事件绑定父容器，监听 Bootstrap 的 tab 切换事件，当用户点击标签时动态加载该标签对应的产品。
+    /**Bind Bootstrap's tab switch event to the parent container, 
+     * and dynamically load the products under the chosen category tab. **/
     document.getElementById('nav-tab').addEventListener('shown.bs.tab', function (event) {
       const categoryId = event.target.getAttribute('categoryId');  // 获取 categoryId
 
@@ -3335,9 +3334,9 @@
       const totalBadge = document.querySelector('#offcanvasCart .badge');
       const totalPriceElement = document.querySelector('.cart-total');
 
-      // 更新主页 your cart下方总价
+      // Update the total price under "your cart" on index page
       totalPriceElement.textContent = `$${(data?.totalPrice || 0).toFixed(2)}`;
-      cartList.innerHTML = ''; // 清空现有内容
+      cartList.innerHTML = ''; // Clear out cart list
 
       let totalQuantity = 0;
       // if there are cart items, populate the cart
@@ -3389,7 +3388,7 @@
       bindCartQuantityEvents(cartList)
     }
 
-    // 清空购物车并提示登录
+    // Clear out cart and prompt for login
     function clearCartAndPromptLogin() {
       const cartElement = document.querySelector('#offcanvasCart .offcanvas-body'); // 定位购物车内容区域
       if (cartElement) {
@@ -3444,7 +3443,7 @@
     // Update the cart data on page load
     document.addEventListener('DOMContentLoaded', fetchCartData);
 
-    // 添加事件监听器到购物车按钮，点击按钮更新购物车
+    // Add listener to cart icon, click to update cart
     document.querySelector('[data-bs-target="#offcanvasCart"]').addEventListener('click', fetchCartData);
     document.querySelector('.cart.text-end.d-none.d-lg-block.dropdown').addEventListener('click', fetchCartData);
 

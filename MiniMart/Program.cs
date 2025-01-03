@@ -11,6 +11,7 @@ using Stripe;
 using Microsoft.AspNetCore.Mvc;
 using MiniMart.Services;
 using dotenv.net;
+using Microsoft.Extensions.DependencyInjection;
 
 
 DotEnv.Load(options: new DotEnvOptions(probeForEnv: true));
@@ -150,7 +151,7 @@ app.MapGet("config", async (IOptions<StripeOptions> options) =>
 
 
 // Map route for Stripe webhook
-app.MapPost("webhook", async (HttpRequest req, IOptions<StripeOptions> options, ILogger<Program> logger) =>
+app.MapPost("webhook", async (HttpRequest req, IOptions<StripeOptions> options, ILogger<Program> logger, IServiceProvider serviceProvider) =>
 {
     var json = await new StreamReader(req.Body).ReadToEndAsync();
     Event stripeEvent;
@@ -170,10 +171,41 @@ app.MapPost("webhook", async (HttpRequest req, IOptions<StripeOptions> options, 
         return Results.BadRequest();
     }
 
+    var _context = serviceProvider.GetRequiredService<AppDbContext>();
     if (stripeEvent.Type == Events.PaymentIntentSucceeded)
     {
         var paymentIntent = stripeEvent.Data.Object as Stripe.PaymentIntent;
-        logger.LogInformation($"💰PaymentIntent ID: {paymentIntent.Id}");
+        if (paymentIntent != null && paymentIntent.Metadata.TryGetValue("orderId", out var orderId))
+        {
+            logger.LogInformation($"PaymentIntent ID: {paymentIntent.Id} succeeded for Order ID: {orderId}");
+            // Find the order in the database
+            int orderIdInt;
+            if (int.TryParse(orderId, out orderIdInt))
+            {
+                var orderHistory = await _context.OrderHistories.FindAsync(orderIdInt);
+                if (orderHistory != null && paymentIntent.Id == orderHistory.StripePI)
+                {
+                    // Update the order status
+                    orderHistory.IsCompleted = true;
+
+                    // Save changes to the database
+                    await _context.SaveChangesAsync();
+                    logger.LogInformation($"Order {orderId} marked as completed.");
+                }
+                else
+                {
+                    return Results.BadRequest("Payment intent ID doesn't match.");
+                }
+            }
+            else
+            {
+                return Results.BadRequest("Invalid order ID format.");
+            }
+        }
+        else
+        {
+            logger.LogWarning("Payment intent or orderId not found.");
+        }
     }
 
     return Results.Ok();

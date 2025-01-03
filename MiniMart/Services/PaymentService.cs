@@ -13,11 +13,11 @@ namespace MiniMart.Services
         {
             _paymentIntentService = paymentIntentService;
             _stripeOptions = stripeOptions.Value;
-            // 设置 StripeConfiguration 的 ApiKey
+            // Set ApiKey FOR StripeConfiguration 
             StripeConfiguration.ApiKey = _stripeOptions.SecretKey;
         }
 
-        public async Task<string> CreatePaymentIntentAsync(long amount, string currency = "cad")
+        public async Task<PaymentIntent> CreatePaymentIntentAsync(long amount, string currency = "cad", string orderId = null)
         {
             if (amount <= 0)
             {
@@ -31,11 +31,15 @@ namespace MiniMart.Services
                 AutomaticPaymentMethods = new()
                 {
                     Enabled = true
+                },
+                Metadata = new Dictionary<string, string>
+                {
+                    { "orderId", orderId } // Save orderHistory.Id as metadata
                 }
             };
 
-            var paymentIntent = await _paymentIntentService.CreateAsync(options);
-            return paymentIntent.ClientSecret;
+            // Create and return the PaymentIntent object
+            return await _paymentIntentService.CreateAsync(options);
         }
 
         public string GetPublishableKey()

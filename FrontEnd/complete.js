@@ -13,6 +13,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   const clientSecret = params.get("payment_intent_client_secret");
   const { paymentIntent } = await stripe.retrievePaymentIntent(clientSecret);
 
-  const paymentIntentPre = document.getElementById("payment-intent");
-  paymentIntentPre.innerText = JSON.stringify(paymentIntent, null, 2);
+  // Check the payment status and update the h1 title
+  const paymentStatus = paymentIntent.status;
+  const h1Element = document.querySelector("h1");
+  if (paymentStatus === "succeeded") {
+    h1Element.innerText = "Payment successful!";
+  } else {
+    h1Element.innerText = "Payment failed or pending.";
+  }
+  // const paymentIntentPre = document.getElementById("payment-intent");
+  // paymentIntentPre.innerText = JSON.stringify(paymentIntent, null, 2);
 });
