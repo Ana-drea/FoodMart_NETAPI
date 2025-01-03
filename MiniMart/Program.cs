@@ -113,7 +113,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 // Map route for Stripe publishable key
-app.MapGet("config", async (string sessionId, IOptions<StripeOptions> options) =>
+app.MapGet("config", async (IOptions<StripeOptions> options) =>
 {
     return Results.Ok(new { publishableKey = options.Value.PublishableKey });
 });

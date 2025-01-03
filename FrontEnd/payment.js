@@ -1,14 +1,15 @@
 document.addEventListener("DOMContentLoaded", async () => {
   // Fetch the publishable key from the server
-  const { publishableKey } = await fetch("/config").then((r) => r.json());
+  const { publishableKey } = await fetch("https://localhost:7221/config").then(
+    (r) => r.json()
+  );
   const stripe = Stripe(publishableKey);
-  // Create the payment intent on the server
-  const { clientSecret } = await fetch("/create-payment-intent", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  }).then((r) => r.json());
+  // Get the client secret from URL
+  const url = new URL(window.location.href);
+  const clientSecret = url.searchParams.get("clientSecret");
+  if (!clientSecret) {
+    alert("Payment clientSecret not found in URL. Please try again.");
+  }
 
   //Mount our elements
   const elements = stripe.elements({ clientSecret });
@@ -23,7 +24,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const { error } = stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: window.location.href.split("?")[0] + "complete.html",
+        return_url: window.location.href.split("payment")[0] + "complete.html",
       },
     });
     if (error) {

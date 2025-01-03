@@ -127,19 +127,25 @@ namespace MiniMart.Controllers
             {
                 return BadRequest("Invalid amount.");
             }
-            var amount = (long)(orderHistory.TotalAmount * 100);
 
             // 2. Create the payment intent with the dynamic amount
+            string clientSecret;
             try
             {
-                var clientSecret = await _paymentService.CreatePaymentIntentAsync(amount);
-                return Ok(new { clientSecret });
+                var amount = (long)(orderHistory.TotalAmount * 100);
+                clientSecret = await _paymentService.CreatePaymentIntentAsync(amount);
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message });
+                return BadRequest(new { error = "Failed to create payment intent: " + ex.Message });
             }
-            return Ok();
+
+            // Return JSON response
+            return Ok(new
+            {
+                clientSecret,
+                paymentPageUrl = "/payment.html" // Redirect page for frontend
+            });
         }
     }
 }
