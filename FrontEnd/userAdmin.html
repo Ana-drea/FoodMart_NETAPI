@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Your Account</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
+</head>
+
+<body>
+    <header>
+        <h1>MiniMart</h1>
+        <nav>
+            <a href="#">Home</a>
+            <a href="#">Cart</a>
+            <a href="#">Orders</a>
+            <a href="#">Logout</a>
+        </nav>
+    </header>
+    <main>
+        <h2>Manage your account</h2>
+        <p>Change your account settings</p>
+        <div class="account-settings d-flex">
+            <aside class="tab-menu">
+                <ul class="nav nav-pills flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="profile-tab" href="#profile" data-bs-toggle="pill">Profile</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="email-tab" href="#email" data-bs-toggle="pill">Email</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="change-password-tab" href="#password" data-bs-toggle="pill">Password</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="two-factor-tab" href="#2fa" data-bs-toggle="pill">Two-factor
+                            authentication</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="personal-data-tab" href="#personal-data" data-bs-toggle="pill">Personal
+                            data</a>
+                    </li>
+                </ul>
+            </aside>
+            <section class="tab-content flex-grow-1">
+                <div class="tab-pane fade show active" id="profile">
+                    <h3>Manage Profile</h3>
+                    <p>Profile management section content...</p>
+                </div>
+                <div class="tab-pane fade" id="email">
+                    <h3>Manage Email</h3>
+                    <label for="current-email">Email</label>
+                    <input type="email" id="current-email" value="dev@local.host" readonly>
+                    <label for="new-email">New email</label>
+                    <input type="email" id="new-email" placeholder="Enter new email">
+                    <button>Change email</button>
+                </div>
+                <div class="tab-pane fade" id="password">
+                    <h3>Manage Password</h3>
+                    <p>Password management section content...</p>
+                </div>
+                <div class="tab-pane fade" id="2fa">
+                    <h3>Two-factor authentication</h3>
+                    <p>Two-factor authentication management content...</p>
+                </div>
+                <div class="tab-pane fade" id="personal-data">
+                    <h3>Manage Personal Data</h3>
+                    <p>Personal data management section content...</p>
+                </div>
+            </section>
+        </div>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
