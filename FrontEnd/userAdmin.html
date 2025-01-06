@@ -35,10 +35,6 @@
                         <a class="nav-link" id="change-password-tab" href="#password" data-bs-toggle="pill">Password</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="two-factor-tab" href="#2fa" data-bs-toggle="pill">Two-factor
-                            authentication</a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link" id="personal-data-tab" href="#personal-data" data-bs-toggle="pill">Personal
                             data</a>
                     </li>
@@ -52,18 +48,18 @@
                 <div class="tab-pane fade" id="email">
                     <h3>Manage Email</h3>
                     <label for="current-email">Email</label>
-                    <input type="email" id="current-email" value="dev@local.host" readonly>
+                    <input type="email" id="current-email" value="" readonly>
                     <label for="new-email">New email</label>
                     <input type="email" id="new-email" placeholder="Enter new email">
-                    <button>Change email</button>
+                    <button id="change-email-button">Change Email</button>
                 </div>
                 <div class="tab-pane fade" id="password">
                     <h3>Manage Password</h3>
-                    <p>Password management section content...</p>
-                </div>
-                <div class="tab-pane fade" id="2fa">
-                    <h3>Two-factor authentication</h3>
-                    <p>Two-factor authentication management content...</p>
+                    <label for="current-password">Current password</label>
+                    <input type="password" id="current-password" placeholder="Enter current password">
+                    <label for="new-password">New password</label>
+                    <input type="password" id="new-password" placeholder="Enter new password">
+                    <button id="change-password-button">Change Password</button>
                 </div>
                 <div class="tab-pane fade" id="personal-data">
                     <h3>Manage Personal Data</h3>
@@ -73,6 +69,134 @@
         </div>
     </main>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ** 1. Get current user email when on Email tab **
+        document.addEventListener('DOMContentLoaded', function () {
+            // Get the nav-link element for the "Manage Email" tab
+            const manageEmailTab = document.querySelector('a[href="#email"]');
+
+            // Add a click event listener
+            manageEmailTab.addEventListener('click', function () {
+                // Send a request to the backend to fetch the current user's email
+                fetch('https://localhost:7221/api/account/current-email', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'accept': 'application/json'
+                    },
+                    credentials: 'include'
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to fetch email');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Update the current-email input field
+                        const currentEmailInput = document.getElementById('current-email');
+                        currentEmailInput.value = data.email || 'Not available';
+                    })
+                    .catch(error => {
+                        console.error('Error fetching email:', error);
+                    });
+            });
+        });
+
+        // ** 2. Send confirmation email to new email when click the Change Email button **
+        document.addEventListener('DOMContentLoaded', function () {
+            // Change email button
+            const changeEmailButton = document.getElementById('change-email-button');
+
+            // Add click event listener
+            changeEmailButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                // Get the new email value from the input field
+                const newEmailInput = document.getElementById('new-email');
+                const newEmail = newEmailInput.value;
+
+                // Validate the new email
+                if (!newEmail || !newEmail.includes('@')) {
+                    alert('Please enter a valid email address.');
+                    return;
+                }
+
+                // Send POST request to the backend
+                fetch('https://localhost:7221/api/account/change-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'accept': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ newEmail: newEmail }),
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to change email.');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Handle successful response
+                        alert(data.message || 'Email changed successfully!');
+                        // Optionally update the current email field
+                        const currentEmailInput = document.getElementById('current-email');
+                        currentEmailInput.value = newEmail;
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while changing the email.');
+                    });
+            });
+        });
+
+        // ** 3. Send request to change email when click the button **
+        document.addEventListener('DOMContentLoaded', function () {
+            // Change email button
+            const changePasswordButton = document.getElementById('change-password-button');
+
+            // Add click event listener
+            changePasswordButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                // Get the new email value from the input field
+                const currentPassword = document.getElementById('current-password').value;
+                const newPassword = document.getElementById('new-password').value;
+
+                // Validate the new email
+                if (!currentPassword || !newPassword) {
+                    alert('Password cannot be empty.');
+                    return;
+                }
+
+                // Send POST request to the backend
+                fetch('https://localhost:7221/api/account/change-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'accept': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ currentPassword: currentPassword, newPassword: newPassword }),
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to change password.');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Handle successful response
+                        alert(data.message || 'Password changed successfully!');
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while changing the password.');
+                    });
+            });
+        });
+    </script>
+
 </body>
 
 </html>

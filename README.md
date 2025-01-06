@@ -1,15 +1,21 @@
 ### How to update database after change in models:
+
 1. Empty database and all tables
+
 ```bash
 DROP DATABASE FoodMartDb;
 CREATE DATABASE FoodMartDb;
 ```
+
 2. migrate to database
+
 ```bash
 dotnet ef migrations add Initial
 dotnet ef database update
 ```
+
 3. insert seed data
+
 ```bash
 INSERT INTO Categories (Id, Name, Description) VALUES
 (1, 'Electronics', 'Devices and gadgets like phones, laptops, and cameras'),
@@ -30,4 +36,14 @@ VALUES
     (3, 'Store 3', '789 Oak St, City, Country', FALSE);
 ```
 
+4. listen to Stripe using webhook
 
+```bash
+stripe listen --forward-to https://localhost:7221/webhook
+```
+
+Use the following command to trigger event toward webhook
+
+```bash
+stripe trigger payment_intent.succeeded
+```

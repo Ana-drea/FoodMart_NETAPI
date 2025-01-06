@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using MiniMart.Services;
 using dotenv.net;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 
 DotEnv.Load(options: new DotEnvOptions(probeForEnv: true));
@@ -90,6 +91,8 @@ builder.Services.AddSingleton<IStripeClient>(new StripeClient(builder.Configurat
 builder.Services.AddSingleton<PaymentIntentService>();
 builder.Services.AddScoped<PaymentService>();
 
+// Register email sender
+builder.Services.AddTransient<IEmailSender, EmailSender>();
 
 var app = builder.Build();
 
