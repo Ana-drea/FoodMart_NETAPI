@@ -7,6 +7,8 @@ using System.Text;
 using MiniMart.Models;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Authorization;
+using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Authentication;
 
 namespace MiniMart.Controllers
 {
@@ -265,7 +267,7 @@ namespace MiniMart.Controllers
             return Ok(new { Message = "Email has been changed successfully." });
         }
 
-        [HttpGet("current-email")]
+        [HttpGet("current-info")]
         public async Task<IActionResult> GetCurrentEmail()
         {
             // Get the current user
@@ -275,7 +277,56 @@ namespace MiniMart.Controllers
                 return Unauthorized(new { Message = "User is not logged in." });
             }
 
-            return Ok(new { Email = user.Email });
+            return Ok(new { Email = user.Email, PhoneNumber=user.PhoneNumber });
+        }
+
+        [Authorize]
+        [HttpPost("add-phone-number")]
+        public async Task<IActionResult> AddPhoneNumber([FromBody] AddPhoneNumberRequest request)
+        {
+            // Validate the phone number format
+            if (string.IsNullOrWhiteSpace(request.PhoneNumber) || !Regex.IsMatch(request.PhoneNumber, @"^\d{10}$"))
+            {
+                return BadRequest(new { Message = "Invalid phone number. It must be exactly 10 digits." });
+            }
+
+            // Get the currently logged-in user
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Unauthorized(new { Message = "User not found or not logged in." });
+            }
+
+            // Update the phone number
+            user.PhoneNumber = request.PhoneNumber;
+            var result = await _userManager.UpdateAsync(user);
+
+            if (result.Succeeded)
+            {
+                return Ok(new { Message = "Phone number updated successfully." });
+            }
+
+            // Handle errors during update
+            var errors = result.Errors.Select(e => e.Description).ToArray();
+            return BadRequest(new { Message = "Failed to update phone number.", Errors = errors });
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            try
+            {
+                // Sign out the current user
+                await HttpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
+
+                return Ok(new { Message = "User has been logged out successfully." });
+            }
+            catch (Exception ex)
+            {
+                // Log the error (optional)
+                // _logger.LogError(ex, "An error occurred while logging out.");
+                return StatusCode(500, new { Message = "Logout successful!", Error = ex.Message });
+            }
         }
     }
 }

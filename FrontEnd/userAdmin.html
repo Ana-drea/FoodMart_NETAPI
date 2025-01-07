@@ -16,7 +16,7 @@
             <a href="#">Home</a>
             <a href="#">Cart</a>
             <a href="#">Orders</a>
-            <a href="#">Logout</a>
+            <a href="#logout">Logout</a>
         </nav>
     </header>
     <main>
@@ -43,12 +43,16 @@
             <section class="tab-content flex-grow-1">
                 <div class="tab-pane fade show active" id="profile">
                     <h3>Manage Profile</h3>
-                    <p>Profile management section content...</p>
+                    <label for="username">Username</label>
+                    <input type="text" id="username" value="" readonly disabled>
+                    <label for="phone-number">Phone number</label>
+                    <input type="tel" id="phone-number" placeholder="Enter phone number">
+                    <button id="save-phone-button">Save</button>
                 </div>
                 <div class="tab-pane fade" id="email">
                     <h3>Manage Email</h3>
-                    <label for="current-email">Email</label>
-                    <input type="email" id="current-email" value="" readonly>
+                    <label for="current-email">Current Email</label>
+                    <input type="email" id="current-email" value="" readonly disabled>
                     <label for="new-email">New email</label>
                     <input type="email" id="new-email" placeholder="Enter new email">
                     <button id="change-email-button">Change Email</button>
@@ -70,41 +74,136 @@
     </main>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // ** 1. Get current user email when on Email tab **
-        document.addEventListener('DOMContentLoaded', function () {
-            // Get the nav-link element for the "Manage Email" tab
-            const manageEmailTab = document.querySelector('a[href="#email"]');
-
-            // Add a click event listener
-            manageEmailTab.addEventListener('click', function () {
-                // Send a request to the backend to fetch the current user's email
-                fetch('https://localhost:7221/api/account/current-email', {
+        // Function to fetch the current user's information(email/username, phone number)
+        async function loadCurrentInfo() {
+            try {
+                const response = await fetch('https://localhost:7221/api/account/current-info', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
                         'accept': 'application/json'
                     },
                     credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch email/username');
+                }
+
+                const data = await response.json();
+                return data; // Return the object containing Email and PhoneNumber
+            } catch (error) {
+                console.error('Error fetching user info', error);
+                return 'Error loading user info';
+            }
+        }
+
+        async function logoutUser() {
+            try {
+                const response = await fetch('https://localhost:7221/api/account/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'accept': 'application/json',
+                    },
+                    credentials: 'include', // Include cookies for authentication
+                });
+
+                if (!response.ok) {
+                    throw new Error('Logout failed.');
+                }
+
+                const data = await response.json();
+                alert(data.message || 'Logout successful!');
+                // Optionally redirect to the login page or homepage
+                window.location.href = '/login.html';
+            } catch (error) {
+                console.error('Error during logout:', error);
+                alert('An error occurred while logging out.');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // ** 1. Get current user email and phone number on page load, or when on corrensponding tab **
+            // Function to update the fields with user information
+            async function updateUserFields() {
+                const userInfo = await loadCurrentInfo();
+
+                if (userInfo) {
+                    // Populate the email field
+                    const emailInput = document.getElementById('current-email');
+                    emailInput.value = userInfo.email || 'Not available';
+
+                    const userInput = document.getElementById('username')
+                    userInput.value = userInfo.email || 'Not available';
+                    // Populate the phone number field
+                    const phoneInput = document.getElementById('phone-number');
+                    phoneInput.value = userInfo.phoneNumber || 'Not available';
+                } else {
+                    // Handle error case
+                    alert('Failed to load user information.');
+                }
+            }
+
+            // Add event listeners to tabs
+            const manageEmailTab = document.querySelector('a[href="#email"]');
+            const profileTab = document.querySelector('a[href="#profile"]');
+
+            // Update email field when "Manage Email" tab is clicked
+            manageEmailTab.addEventListener('click', updateUserFields);
+
+            // Update profile fields when "Profile" tab is clicked
+            profileTab.addEventListener('click', updateUserFields);
+
+            // Optionally load data on page load
+            updateUserFields();
+
+            // ** 2. Save phone number when click the Save button **
+            // Change email button
+            const savePhoneButton = document.getElementById('save-phone-button');
+
+            // Add click event listener
+            savePhoneButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                // Get the phone number value
+                const phoneNumber = document.getElementById('phone-number').value;
+
+                // Validate phone number (must be exactly 10 digits)
+                const phoneRegex = /^\d{10}$/;
+                if (!phoneRegex.test(phoneNumber)) {
+                    alert('Phone number must be exactly 10 digits.');
+                    return;
+                }
+
+                // Send POST request to the backend
+                fetch('https://localhost:7221/api/account/add-phone-number', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'accept': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ phoneNumber: phoneNumber }),
                 })
                     .then(response => {
                         if (!response.ok) {
-                            throw new Error('Failed to fetch email');
+                            return response.json().then(err => {
+                                throw new Error(err.message || 'Failed to save phone number.');
+                            });
                         }
                         return response.json();
                     })
                     .then(data => {
-                        // Update the current-email input field
-                        const currentEmailInput = document.getElementById('current-email');
-                        currentEmailInput.value = data.email || 'Not available';
+                        // Handle successful response
+                        alert(data.message || 'Phone number saved successfully!');
                     })
                     .catch(error => {
-                        console.error('Error fetching email:', error);
+                        console.error('Error:', error);
+                        alert(error.message || 'An error occurred while saving the phone number.');
                     });
             });
-        });
 
-        // ** 2. Send confirmation email to new email when click the Change Email button **
-        document.addEventListener('DOMContentLoaded', function () {
+            // ** 3. Send confirmation email to new email when click the Change Email button **
             // Change email button
             const changeEmailButton = document.getElementById('change-email-button');
 
@@ -149,10 +248,8 @@
                         alert('An error occurred while changing the email.');
                     });
             });
-        });
 
-        // ** 3. Send request to change email when click the button **
-        document.addEventListener('DOMContentLoaded', function () {
+            // ** 4. Send request to change email when click the button **
             // Change email button
             const changePasswordButton = document.getElementById('change-password-button');
 
@@ -194,6 +291,12 @@
                         alert('An error occurred while changing the password.');
                     });
             });
+
+            // ** 4. Logout when click the logout option in navbar **
+            const logoutOption = document.querySelector('a[href="#logout"]');
+
+            // Update email field when "Manage Email" tab is clicked
+            logoutOption.addEventListener('click', logoutUser);
         });
     </script>
 
