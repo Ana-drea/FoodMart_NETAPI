@@ -28,8 +28,57 @@ namespace MiniMart.Controllers
             _paymentService = paymentService;
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetUserOrders()
+        {
+            // 1. Retrieve the current user
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Unauthorized("User not found."); // Return an unauthorized error if the user is not logged in
+            }
+
+            var userId = user.Id;
+
+            // 2. Query all orders for the user, including order items and related product information
+            var orders = await _context.OrderHistories
+                .Where(o => o.UserId == userId)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Product)
+                .Include(o => o.Store) // Include the Store entity to get its name
+                .OrderByDescending(o => o.OrderDate) // Sort orders by order date in descending order
+                .ToListAsync();
+
+            // 3. Check if there are any orders
+            if (orders == null || !orders.Any())
+            {
+                return NotFound("No orders found for the current user."); // Return 404 if no orders are found
+            }
+
+            // 4. Map orders to a list of OrderResponseDto
+            var orderResponseDtos = orders.Select(o => new OrderResponseDto
+            {
+                Id = o.Id,
+                OrderDate = o.OrderDate,
+                TotalAmount = o.TotalAmount,
+                IsCompleted = o.IsCompleted,
+                StoreName = o.Store?.Name ?? "Unknown", // Replace StoreId with Store.Name,
+                Items = o.OrderItems.Select(oi => new OrderItemDto
+                {
+                    ProductId = oi.ProductId,
+                    ProductName = oi.Product.Name,
+                    Quantity = oi.Quantity,
+                    UnitPrice = oi.UnitPrice,
+                    TotalPrice = oi.TotalPrice
+                }).ToList()
+            }).ToList();
+
+            return Ok(orderResponseDtos); // Return the list of DTOs
+        }
+
+
         [HttpPost]
-        public async Task<IActionResult> Checkout([FromBody] OrderHistoryDto orderHistoryDto)
+        public async Task<IActionResult> Checkout([FromBody] orderRequestDto orderRequestDto)
         {
             // 1. Validate the model
             if (!ModelState.IsValid)
@@ -58,10 +107,10 @@ namespace MiniMart.Controllers
             }
 
             //// 3. Generate the order number
-            //int seed = (userId.GetHashCode() + orderHistoryDto.OrderDate.GetHashCode()) % int.MaxValue; // Combine UserId and OrderDate as seed
+            //int seed = (userId.GetHashCode() + orderRequestDto.OrderDate.GetHashCode()) % int.MaxValue; // Combine UserId and OrderDate as seed
             //var random = new Random(seed);
             //var randomDigits = random.Next(100000, 999999); // Generate a 6-digit random number
-            //var orderNumber = $"NO{orderHistoryDto.OrderDate:yyyyMMdd}-{randomDigits}"; // Format the order number as NOyyyyMMdd-XXXXXX
+            //var orderNumber = $"NO{orderRequestDto.OrderDate:yyyyMMdd}-{randomDigits}"; // Format the order number as NOyyyyMMdd-XXXXXX
 
 
             // 4. Create a new OrderHistory instance
@@ -70,10 +119,10 @@ namespace MiniMart.Controllers
 
                 // OrderNumber = orderNumber,
                 UserId = userId,
-                OrderDate = orderHistoryDto.OrderDate,
+                OrderDate = orderRequestDto.OrderDate,
                 TotalAmount = 0,
-                StoreId = orderHistoryDto.StoreId,
-                PhoneNumber = orderHistoryDto.PhoneNumber,
+                StoreId = orderRequestDto.StoreId,
+                PhoneNumber = orderRequestDto.PhoneNumber,
                 IsCompleted = false, // Default to not completed
                 OrderItems = new List<OrderItem>()
             };
@@ -98,7 +147,7 @@ namespace MiniMart.Controllers
                 product.QuantityInStock -= cartItem.Quantity;
 
                 // Add the amount to total amount
-                orderHistory.TotalAmount += product.Price*cartItem.Quantity;
+                orderHistory.TotalAmount += product.Price * cartItem.Quantity;
 
                 // Convert CartItem to OrderItem
                 var orderItem = new OrderItem

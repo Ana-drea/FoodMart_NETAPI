@@ -3,7 +3,7 @@ using MiniMart.Models;
 
 namespace MiniMart.Dtos
 {
-    public class OrderHistoryDto
+    public class orderRequestDto
     {
         public DateTime OrderDate { get; set; }
         public int StoreId { get; set; }
