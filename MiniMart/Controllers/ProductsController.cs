@@ -38,7 +38,7 @@ namespace MiniMart.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> Get(
+        public async Task<ActionResult<IEnumerable<ProductsResponseDto>>> Get(
     [FromQuery] int? categoryId,
     [FromQuery] string? searchQuery,
     [FromQuery] string? sortBy,
@@ -59,6 +59,9 @@ namespace MiniMart.Controllers
             {
                 query = query.Where(p => p.Name.Contains(searchQuery) || p.Description.Contains(searchQuery));
             }
+
+            // Calculate total number before applying pagination
+            int totalNumber = await query.CountAsync();
 
             // Sorting
             if (!string.IsNullOrEmpty(sortBy))
@@ -82,8 +85,14 @@ namespace MiniMart.Controllers
             {
                 return NotFound();
             }
+            // Return products along with total number
+            var response = new ProductsResponseDto
+            {
+                TotalNumber = totalNumber,
+                Products = products
+            };
 
-            return Ok(products);
+            return Ok(response);
         }
 
         // Method to get sort expression

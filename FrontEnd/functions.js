@@ -17,6 +17,11 @@ function generateTabPanes() {
       `<div class="tab-pane fade ${isActive}" id="${targetId}" role="tabpanel" aria-labelledby="${tab.id}" categoryId="${categoryId}">
                 <!-- Here will be content for each tab -->
                 <div class="row trending-product-grid"></div>
+                <nav aria-label="Page navigation">
+                  <ul id="pagination" class="pagination justify-content-center mt-4">
+                    <!-- Pagination links will be dynamically inserted here -->
+                  </ul>
+                </nav>
             </div>`
     );
   });
@@ -170,10 +175,74 @@ function populateProductGrid(products) {
   }, 200); // Wait for 500ms to complete DOM rendering
 }
 
-function fetchProductsNPopulate(categoryId) {
-  const apiUrl = categoryId
-    ? `https://localhost:7221/api/products?categoryId=${categoryId}`
-    : "https://localhost:7221/api/products";
+function populatePagination(totalPages, currentPage, categoryId) {
+  console.log(totalPages + " " + currentPage + " " + categoryId);
+  const paginationContainer = document.getElementById("pagination");
+  paginationContainer.innerHTML = ""; // Clear out current pagination component
+
+  const paginationList = document.createElement("ul");
+  paginationList.className = "pagination";
+
+  // Previous button
+  const prevClass = currentPage === 1 ? "disabled" : "";
+  const prevItem = `
+    <li class="page-item ${prevClass}">
+      <a class="page-link" href="#" data-page="${currentPage - 1}">Previous</a>
+    </li>
+  `;
+  paginationList.insertAdjacentHTML("beforeend", prevItem);
+
+  // Page numbers
+  for (let i = 1; i <= totalPages; i++) {
+    const activeClass = i === currentPage ? "active" : "";
+    const pageItem = `
+      <li class="page-item ${activeClass}">
+        <a class="page-link" href="#" data-page="${i}">${i}</a>
+      </li>
+    `;
+    paginationList.insertAdjacentHTML("beforeend", pageItem);
+  }
+
+  // Next button
+  const nextClass = currentPage === totalPages ? "disabled" : "";
+  const nextItem = `
+    <li class="page-item ${nextClass}">
+      <a class="page-link" href="#" data-page="${currentPage + 1}">Next</a>
+    </li>
+  `;
+  paginationList.insertAdjacentHTML("beforeend", nextItem);
+
+  paginationContainer.appendChild(paginationList);
+
+  // Bind click events to pagination links
+  const pageLinks = document.querySelectorAll(".page-link");
+  pageLinks.forEach((link) => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      const page = parseInt(link.getAttribute("data-page"), 10);
+      if (!isNaN(page)) {
+        fetchProductsNPopulate(categoryId, page);
+      }
+    });
+  });
+}
+
+function fetchProductsNPopulate(
+  categoryId = undefined,
+  pageNumber = 1,
+  pageSize = 3
+) {
+  // Construct API URL and add query strings according to input variables
+  let apiUrl = "https://localhost:7221/api/products";
+
+  const queryParams = new URLSearchParams();
+  if (categoryId) queryParams.append("categoryId", categoryId);
+  if (pageNumber) queryParams.append("pageNumber", pageNumber);
+  if (pageSize) queryParams.append("pageSize", pageSize);
+
+  if (queryParams.toString()) {
+    apiUrl += `?${queryParams.toString()}`;
+  }
 
   // Fetch products data from API and populate
   fetch(apiUrl)
@@ -183,8 +252,14 @@ function fetchProductsNPopulate(categoryId) {
       }
       return response.json();
     })
-    .then((products) => {
-      populateProductGrid(products);
+    .then((data) => {
+      // Calculate number of pages
+      const totalPages = Math.ceil(data.totalNumber / pageSize);
+
+      // Populate product grid
+      populateProductGrid(data.products);
+      // Construct pagination component
+      populatePagination(totalPages, pageNumber, categoryId);
     })
     .catch((error) => {
       console.error("Error fetching products:", error);

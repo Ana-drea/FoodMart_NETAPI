@@ -620,10 +620,14 @@
 
                 </div>
                 <!-- / product-grid -->
+                <nav aria-label="Page navigation">
+                  <ul id="pagination" class="pagination justify-content-center mt-4">
+                    <!-- Pagination links will be dynamically inserted here -->
+                  </ul>
+                </nav>
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </div>
@@ -862,7 +866,6 @@
       fetchProductsNPopulate(categoryId);
     });
 
-
     document.addEventListener('DOMContentLoaded', () => {
       // Fetch all products when page loads
       fetchProductsNPopulate();
@@ -872,8 +875,6 @@
 
       // Update the cart data on page load
       fetchCartData();
-
-
     });
 
     // Add listener to cart icon, click to update cart

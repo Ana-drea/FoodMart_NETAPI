@@ -54,7 +54,7 @@
                 .then(data => {
                     const productsTable = document.getElementById('products-table');
 
-                    data.forEach(product => {
+                    data.products.forEach(product => {
                         const row = document.createElement('tr');
 
                         const nameCell = document.createElement('td');
