@@ -37,8 +37,8 @@
 
             // Construct URLs for API requests w/ and  w/o categoryId
             const apiUrl = categoryId
-                ? `https://localhost:7221/api/products/category/${categoryId}` // 请求指定类别的产品
-                : `https://localhost:7221/api/products`;                     // 请求所有产品
+                ? `https://localhost:7221/api/products?categoryId=${categoryId}` // Fetch products of a certain category
+                : `https://localhost:7221/api/products`;                     // Fetch all products
 
             // Send GET request to API
             fetch(apiUrl, {

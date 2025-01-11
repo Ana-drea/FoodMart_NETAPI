@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using MiniMart.Dtos;
+using System.Linq.Expressions;
 
 namespace MiniMart.Controllers
 {
@@ -20,14 +21,6 @@ namespace MiniMart.Controllers
             _context = context;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> Get()
-        {
-            var products = await _context.Products
-                                         .Include(p => p.Category) // Load related Category data
-                                         .ToListAsync();
-            return Ok(products);
-        }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Product>> GetById([FromRoute] int id)
@@ -44,19 +37,67 @@ namespace MiniMart.Controllers
             return Ok(product);
         }
 
-        [HttpGet("category/{categoryId}")]
-        public async Task<ActionResult<IEnumerable<Product>>> GetByCategoryId([FromRoute] int categoryId)
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Product>>> Get(
+    [FromQuery] int? categoryId,
+    [FromQuery] string? searchQuery,
+    [FromQuery] string? sortBy,
+    [FromQuery] string? sortDirection,
+    [FromQuery] int? pageNumber,
+    [FromQuery] int? pageSize)
         {
-            var products = await _context.Products
-                .Where(p => p.CategoryId == categoryId)
-                .Include(p => p.Category) // Load related Category data
-                .ToListAsync();
+            // Basic search
+            var query = _context.Products.Include(p => p.Category).AsQueryable(); // Load related Category data
+
+            // Filtering
+            if (categoryId.HasValue)
+            {
+                query = query.Where(p => p.CategoryId == categoryId.Value);
+            }
+
+            if (!string.IsNullOrEmpty(searchQuery))
+            {
+                query = query.Where(p => p.Name.Contains(searchQuery) || p.Description.Contains(searchQuery));
+            }
+
+            // Sorting
+            if (!string.IsNullOrEmpty(sortBy))
+            {
+                query = sortDirection?.ToLower() == "desc"
+                    ? query.OrderByDescending(GetSortExpression(sortBy))
+                    : query.OrderBy(GetSortExpression(sortBy));
+            }
+
+            // Pagination
+            if (pageNumber.HasValue && pageSize.HasValue)
+            {
+                int skip = (pageNumber.Value - 1) * pageSize.Value;
+                query = query.Skip(skip).Take(pageSize.Value);
+            }
+
+            var products = await query.ToListAsync();
+
+            // Return NotFound if search result is empty
             if (products == null || !products.Any())
             {
                 return NotFound();
             }
+
             return Ok(products);
         }
+
+        // Method to get sort expression
+        private static Expression<Func<Product, object>> GetSortExpression(string sortBy)
+        {
+            return sortBy.ToLower() switch
+            {
+                "name" => p => p.Name,
+                "price" => p => p.Price,
+                "quantity" => p => p.QuantityInStock,
+                _ => p => p.Id // Sort by id by default
+            };
+        }
+
 
         [HttpPost]
         public async Task<ActionResult<Product>> Create([FromBody] ProductDto productDto)
