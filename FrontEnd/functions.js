@@ -18,13 +18,33 @@ function generateTabPanes() {
                 <!-- Here will be content for each tab -->
                 <div class="row trending-product-grid"></div>
                 <nav aria-label="Page navigation">
-                  <ul id="pagination" class="pagination justify-content-center mt-4">
+                  <ul id="pagination" categoryId="${categoryId}" class="pagination justify-content-center mt-4">
                     <!-- Pagination links will be dynamically inserted here -->
                   </ul>
                 </nav>
             </div>`
     );
   });
+}
+
+function clearProductGrid() {
+  const activeTabPane = document.querySelector(".tab-pane.show.active");
+  if (!activeTabPane) {
+    console.log("No active tab pane found");
+    return; // Exit to prevent errors
+  }
+  const categoryId = activeTabPane.getAttribute("categoryId");
+  // Search for 'trending-product-grid' element within current active tab-pane
+  const productGrid = activeTabPane.querySelector(".trending-product-grid");
+
+  if (!productGrid) {
+    console.error("No product grid found in the active tab pane!");
+    return;
+  }
+
+  // Clear out product grid
+  productGrid.innerHTML = "";
+  clearPagination(categoryId);
 }
 
 // Dynamically Populate Trending Product Grid
@@ -174,10 +194,26 @@ function populateProductGrid(products) {
     });
   }, 200); // Wait for 500ms to complete DOM rendering
 }
+function clearPagination(categoryId) {
+  // On page load or on all-category tab(no categoryId), select the first pagination component
+  let paginationContainer = document.getElementById("pagination");
+  if (categoryId != null) {
+    paginationContainer = document.querySelector(
+      `#pagination[categoryId="${categoryId}"]`
+    );
+  }
+  paginationContainer.innerHTML = ""; // Clear out current pagination component
+}
 
 function populatePagination(totalPages, currentPage, categoryId) {
-  console.log(totalPages + " " + currentPage + " " + categoryId);
-  const paginationContainer = document.getElementById("pagination");
+  // On page load or on all-category tab(no categoryId), select the first pagination component
+  let paginationContainer = document.getElementById("pagination");
+  if (categoryId != null) {
+    paginationContainer = document.querySelector(
+      `#pagination[categoryId="${categoryId}"]`
+    );
+  }
+
   paginationContainer.innerHTML = ""; // Clear out current pagination component
 
   const paginationList = document.createElement("ul");
@@ -221,7 +257,7 @@ function populatePagination(totalPages, currentPage, categoryId) {
       e.preventDefault();
       const page = parseInt(link.getAttribute("data-page"), 10);
       if (!isNaN(page)) {
-        fetchProductsNPopulate(categoryId, page);
+        fetchProductsNPopulate(categoryId, undefined, page);
       }
     });
   });
@@ -229,14 +265,18 @@ function populatePagination(totalPages, currentPage, categoryId) {
 
 function fetchProductsNPopulate(
   categoryId = undefined,
+  searchQuery = undefined,
   pageNumber = 1,
-  pageSize = 3
+  pageSize = 5
 ) {
   // Construct API URL and add query strings according to input variables
   let apiUrl = "https://localhost:7221/api/products";
 
   const queryParams = new URLSearchParams();
-  if (categoryId) queryParams.append("categoryId", categoryId);
+  if (categoryId != null && categoryId != "null") {
+    queryParams.append("categoryId", categoryId);
+  }
+  if (searchQuery) queryParams.append("searchQuery", searchQuery);
   if (pageNumber) queryParams.append("pageNumber", pageNumber);
   if (pageSize) queryParams.append("pageSize", pageSize);
 
@@ -248,6 +288,9 @@ function fetchProductsNPopulate(
   fetch(apiUrl)
     .then((response) => {
       if (!response.ok) {
+        if (response.status === 404) {
+          clearProductGrid();
+        }
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
       return response.json();

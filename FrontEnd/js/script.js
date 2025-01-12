@@ -1,29 +1,26 @@
-
-(function($) {
-
+(function ($) {
   "use strict";
 
-  var initPreloader = function() {
-    $(document).ready(function($) {
-    var Body = $('body');
-        Body.addClass('preloader-site');
+  var initPreloader = function () {
+    $(document).ready(function ($) {
+      var Body = $("body");
+      Body.addClass("preloader-site");
     });
-    $(window).load(function() {
-        $('.preloader-wrapper').fadeOut();
-        $('body').removeClass('preloader-site');
+    $(window).load(function () {
+      $(".preloader-wrapper").fadeOut();
+      $("body").removeClass("preloader-site");
     });
-  }
+  };
 
   // init Chocolat light box
-	var initChocolat = function() {
-		Chocolat(document.querySelectorAll('.image-link'), {
-		  imageSize: 'contain',
-		  loop: true,
-		})
-	}
+  var initChocolat = function () {
+    Chocolat(document.querySelectorAll(".image-link"), {
+      imageSize: "contain",
+      loop: true,
+    });
+  };
 
-  var initSwiper = function() {
-
+  var initSwiper = function () {
     var swiper = new Swiper(".main-swiper", {
       speed: 500,
       pagination: {
@@ -53,7 +50,7 @@
         1500: {
           slidesPerView: 6,
         },
-      }
+      },
     });
 
     var brand_swiper = new Swiper(".brand-carousel", {
@@ -77,7 +74,7 @@
         1500: {
           slidesPerView: 4,
         },
-      }
+      },
     });
 
     var products_swiper = new Swiper(".products-carousel", {
@@ -101,81 +98,78 @@
         1500: {
           slidesPerView: 6,
         },
-      }
+      },
     });
-  }
+  };
 
-  var initProductQty = function(){
-
-    $('.product-qty').each(function(){
-
+  var initProductQty = function () {
+    $(".product-qty").each(function () {
       var $el_product = $(this);
       var quantity = 0;
 
-      $el_product.find('.quantity-right-plus').click(function(e){
-          e.preventDefault();
-          var quantity = parseInt($el_product.find('#quantity').val());
-          $el_product.find('#quantity').val(quantity + 1);
+      $el_product.find(".quantity-right-plus").click(function (e) {
+        e.preventDefault();
+        var quantity = parseInt($el_product.find("#quantity").val());
+        $el_product.find("#quantity").val(quantity + 1);
       });
 
-      $el_product.find('.quantity-left-minus').click(function(e){
-          e.preventDefault();
-          var quantity = parseInt($el_product.find('#quantity').val());
-          if(quantity>0){
-            $el_product.find('#quantity').val(quantity - 1);
-          }
+      $el_product.find(".quantity-left-minus").click(function (e) {
+        e.preventDefault();
+        var quantity = parseInt($el_product.find("#quantity").val());
+        if (quantity > 0) {
+          $el_product.find("#quantity").val(quantity - 1);
+        }
       });
-
     });
-
-  }
+  };
 
   // init jarallax parallax
-  var initJarallax = function() {
+  var initJarallax = function () {
     jarallax(document.querySelectorAll(".jarallax"));
 
     jarallax(document.querySelectorAll(".jarallax-keep-img"), {
       keepImg: true,
     });
-  }
+  };
 
-    // 上传图片函数
-    window.uploadImage = async function(e, imageUrlElement, imageDisplayElement) {
-      let data = new FormData();
-      data.append('file', e.target.files[0]);
-  
-      await fetch('https://localhost:7221/api/images', {
-          method: 'POST',
-          headers: {
-            'Accept': '*/*',
-          },
-          body: data
-        })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then(result => {
-          imageUrlElement.value = result.link;
-          imageDisplayElement.src = result.link;
-          imageDisplayElement.style.display = 'block';
-        })
-        .catch(error => {
-          console.error('Error uploading image:', error);
-        });
-    }
+  // Function for image upload
+  window.uploadImage = async function (
+    e,
+    imageUrlElement,
+    imageDisplayElement
+  ) {
+    let data = new FormData();
+    data.append("file", e.target.files[0]);
+
+    await fetch("https://localhost:7221/api/images", {
+      method: "POST",
+      headers: {
+        Accept: "*/*",
+      },
+      body: data,
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((result) => {
+        imageUrlElement.value = result.link;
+        imageDisplayElement.src = result.link;
+        imageDisplayElement.style.display = "block";
+      })
+      .catch((error) => {
+        console.error("Error uploading image:", error);
+      });
+  };
 
   // document ready
-  $(document).ready(function() {
-    
+  $(document).ready(function () {
     initPreloader();
     initSwiper();
     initProductQty();
     initJarallax();
     initChocolat();
-
   }); // End of a document
-
 })(jQuery);
