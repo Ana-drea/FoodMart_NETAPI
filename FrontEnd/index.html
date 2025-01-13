@@ -552,7 +552,7 @@
               <div class="dropdown">
                 <button class="btn btn-light dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown"
                   aria-expanded="false">
-                  Sort by: <span id="current-sort">Price: low to high</span>
+                  Sort by: <span id="current-sort">None</span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="sortDropdown">
                   <li><a class="dropdown-item" href="#" data-sort="asc">Price: low to high</a></li>
@@ -895,7 +895,6 @@
 
     // **Logic 8: Add event listener for sorting dropdown menu**
     // Get button and dropdown menu
-    const sortButton = document.getElementById('sortDropdown');
     const currentSort = document.getElementById('current-sort');
     const sortOptions = document.querySelectorAll('.dropdown-item');
 
@@ -906,6 +905,7 @@
         const selectedSort = option.textContent; // Get content of chosen dropdown option
         currentSort.textContent = selectedSort; // Update text of button
         const sortDirection = option.getAttribute("data-sort"); // Get the sort direction
+        currentSort.setAttribute("data-selected-sort", sortDirection); // Set attribute for current sort
         const searchQuery = document.getElementById("mini-search-query").value; // Get search query from input
         const categoryId = getCategoryIdFromActiveTab(); // Get categoryId from active tab
 
@@ -923,9 +923,6 @@
     document.addEventListener('DOMContentLoaded', () => {
       // Fetch all products when page loads
       fetchProductsNPopulate();
-
-      // Bind cart quantity button click events on page load
-      bindCartQuantityEvents();
 
       // Update the cart data on page load
       fetchCartData();

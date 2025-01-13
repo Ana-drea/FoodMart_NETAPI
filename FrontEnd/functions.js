@@ -24,7 +24,7 @@ function generateTabPanes() {
                 </nav>
             </div>`
     );
-    /** Clear out previous search string if there is a nav tab switch,
+    /** Clear out previous search string and current sort if there is a nav tab switch,
      * so it won't interfere with pagination **/
     tab.addEventListener("click", () => {
       // Find input field for mini-search-form
@@ -36,6 +36,11 @@ function generateTabPanes() {
       if (searchInput) {
         searchInput.value = "";
       }
+
+      // Get current sort button, change inner text and remove data-selected-sort attribute
+      const currentSort = document.getElementById("current-sort");
+      currentSort.textContent = "None";
+      currentSort.removeAttribute("data-selected-sort");
     });
   });
 }
@@ -213,6 +218,7 @@ function clearPagination(categoryId) {
 function populatePagination(totalPages, currentPage, categoryId) {
   // On page load or on all-category tab(no categoryId), select the first pagination component
   let paginationContainer = document.getElementById("pagination");
+  // Else select the pagination for the category nav tab
   if (categoryId != null) {
     paginationContainer = document.querySelector(
       `#pagination[categoryId="${categoryId}"]`
@@ -255,16 +261,27 @@ function populatePagination(totalPages, currentPage, categoryId) {
 
   paginationContainer.appendChild(paginationList);
 
-  // Bind click events to pagination links
-  const pageLinks = document.querySelectorAll(".page-link");
   // Get search query from input
   const searchQuery = document.getElementById("mini-search-query").value;
+  // Get sort direction from sort dropdown menu
+  const currentSort = document.getElementById("current-sort");
+  const sortDirection = currentSort.getAttribute("data-selected-sort");
+
+  // Bind click events to pagination links
+  const pageLinks = document.querySelectorAll(".page-link");
+
   pageLinks.forEach((link) => {
     link.addEventListener("click", (e) => {
       e.preventDefault();
       const page = parseInt(link.getAttribute("data-page"), 10);
       if (!isNaN(page)) {
-        fetchProductsNPopulate(categoryId, searchQuery, page);
+        fetchProductsNPopulate(
+          categoryId,
+          searchQuery,
+          sortDirection ? "price" : undefined,
+          sortDirection,
+          page
+        );
       }
     });
   });
@@ -287,7 +304,7 @@ function fetchProductsNPopulate(
   }
   if (searchQuery) queryParams.append("searchQuery", searchQuery);
   if (sortBy) queryParams.append("sortBy", sortBy);
-  if (sortDirection) queryParams.append("sortDirection", searchQuery);
+  if (sortDirection) queryParams.append("sortDirection", sortDirection);
   if (pageNumber) queryParams.append("pageNumber", pageNumber);
   if (pageSize) queryParams.append("pageSize", pageSize);
 
@@ -432,14 +449,20 @@ function bindCartQuantityEvents(cartList) {
   });
 }
 
+// Update the total price under "your cart" on index page
+function updateIndexCartTotal(data) {
+  const totalPriceElement = document.querySelector(".cart-total");
+  totalPriceElement.textContent = `$${(data?.totalPrice || 0).toFixed(2)}`;
+}
+
 // Update content of the cart
 function updateCart(data) {
+  // Update the total price under "your cart" on index page
+  updateIndexCartTotal(data);
+
   const cartList = document.querySelector("#offcanvasCart .list-group");
   const totalBadge = document.querySelector("#offcanvasCart .badge");
-  const totalPriceElement = document.querySelector(".cart-total");
 
-  // Update the total price under "your cart" on index page
-  totalPriceElement.textContent = `$${(data?.totalPrice || 0).toFixed(2)}`;
   cartList.innerHTML = ""; // Clear out cart list
 
   let totalQuantity = 0;
