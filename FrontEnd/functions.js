@@ -41,12 +41,7 @@ function generateTabPanes() {
 }
 
 function clearProductGrid() {
-  const activeTabPane = document.querySelector(".tab-pane.show.active");
-  if (!activeTabPane) {
-    console.log("No active tab pane found");
-    return; // Exit to prevent errors
-  }
-  const categoryId = activeTabPane.getAttribute("categoryId");
+  const categoryId = getCategoryIdFromActiveTab();
   // Search for 'trending-product-grid' element within current active tab-pane
   const productGrid = activeTabPane.querySelector(".trending-product-grid");
 
@@ -64,15 +59,12 @@ function clearProductGrid() {
 function populateProductGrid(products) {
   // check and populate product data after 500ms timeout
   setTimeout(function () {
+    // Search for 'trending-product-grid' element within current active tab-pane
     const activeTabPane = document.querySelector(".tab-pane.show.active");
     if (!activeTabPane) {
       console.log("No active tab pane found");
       return; // Exit to prevent errors
     }
-
-    const categoryId = activeTabPane.getAttribute("categoryId");
-
-    // Search for 'trending-product-grid' element within current active tab-pane
     const productGrid = activeTabPane.querySelector(".trending-product-grid");
 
     if (!productGrid) {
@@ -281,6 +273,8 @@ function populatePagination(totalPages, currentPage, categoryId) {
 function fetchProductsNPopulate(
   categoryId = undefined,
   searchQuery = undefined,
+  sortBy = undefined,
+  sortDirection = undefined,
   pageNumber = 1,
   pageSize = 5
 ) {
@@ -292,6 +286,8 @@ function fetchProductsNPopulate(
     queryParams.append("categoryId", categoryId);
   }
   if (searchQuery) queryParams.append("searchQuery", searchQuery);
+  if (sortBy) queryParams.append("sortBy", sortBy);
+  if (sortDirection) queryParams.append("sortDirection", searchQuery);
   if (pageNumber) queryParams.append("pageNumber", pageNumber);
   if (pageSize) queryParams.append("pageSize", pageSize);
 
@@ -323,6 +319,16 @@ function fetchProductsNPopulate(
     .catch((error) => {
       console.error("Error fetching products:", error);
     });
+}
+
+// Get categoryId from currently active nav tab
+function getCategoryIdFromActiveTab() {
+  const activeTabPane = document.querySelector(".tab-pane.show.active");
+  if (!activeTabPane) {
+    console.log("No active tab pane found");
+    return; // Exit to prevent errors
+  }
+  return activeTabPane.getAttribute("categoryId");
 }
 
 // Update product quantity and send request after clicking the cart +/- buttons

@@ -547,6 +547,19 @@
                 </nav>
               </div>
             </div>
+            <!-- Sort Dropdown Menu Section -->
+            <div class="d-flex justify-content-end align-items-center my-3">
+              <div class="dropdown">
+                <button class="btn btn-light dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown"
+                  aria-expanded="false">
+                  Sort by: <span id="current-sort">Price: low to high</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="sortDropdown">
+                  <li><a class="dropdown-item" href="#" data-sort="asc">Price: low to high</a></li>
+                  <li><a class="dropdown-item" href="#" data-sort="desc">Price: high to low</a></li>
+                </ul>
+              </div>
+            </div>
             <div class="tab-content" id="nav-tabContent">
               <div class="tab-pane fade show active" id="nav-all" role="tabpanel" aria-labelledby="nav-all-tab">
 
@@ -593,48 +606,6 @@
                       </div>
                     </div>
                   </div>
-
-                  <div class="col">
-                    <div class="product-item">
-                      <a href="#" class="btn-wishlist"><svg width="24" height="24">
-                          <use xlink:href="#heart"></use>
-                        </svg></a>
-                      <figure>
-                        <a href="index.html" title="Product Title">
-                          <img src="images/thumb-cucumber.png" class="tab-image">
-                        </a>
-                      </figure>
-                      <h3>Sunstar Fresh Melon Juice</h3>
-                      <span class="qty">1 Unit</span><span class="rating"><svg width="24" height="24"
-                          class="text-primary">
-                          <use xlink:href="#star-solid"></use>
-                        </svg> 4.5</span>
-                      <span class="price">$18.00</span>
-                      <div class="d-flex align-items-center justify-content-between">
-                        <div class="input-group product-qty">
-                          <span class="input-group-btn">
-                            <button type="button" class="quantity-left-minus btn btn-danger btn-number"
-                              data-type="minus">
-                              <svg width="16" height="16">
-                                <use xlink:href="#minus"></use>
-                              </svg>
-                            </button>
-                          </span>
-                          <input type="text" id="quantity" name="quantity" class="form-control input-number" value="1">
-                          <span class="input-group-btn">
-                            <button type="button" class="quantity-right-plus btn btn-success btn-number"
-                              data-type="plus">
-                              <svg width="16" height="16">
-                                <use xlink:href="#plus"></use>
-                              </svg>
-                            </button>
-                          </span>
-                        </div>
-                        <a href="#" class="nav-link">Add to Cart <iconify-icon icon="uil:shopping-cart"></a>
-                      </div>
-                    </div>
-                  </div>
-
                 </div>
                 <!-- / product-grid -->
                 <nav aria-label="Page navigation">
@@ -889,13 +860,7 @@
       // Get search query from input
       const searchQuery = document.getElementById("mini-search-query").value;
       // Get categoryId from currently active nav tab
-      const activeTabPane = document.querySelector(".tab-pane.show.active");
-      if (!activeTabPane) {
-        console.log("No active tab pane found");
-        return; // Exit to prevent errors
-      }
-
-      const categoryId = activeTabPane.getAttribute("categoryId");
+      const categoryId = getCategoryIdFromActiveTab();
 
       // Fetch products with searchQuery and categoryId as variables
       if (categoryId != 'null') {
@@ -928,6 +893,33 @@
       }
     });
 
+    // **Logic 8: Add event listener for sorting dropdown menu**
+    // Get button and dropdown menu
+    const sortButton = document.getElementById('sortDropdown');
+    const currentSort = document.getElementById('current-sort');
+    const sortOptions = document.querySelectorAll('.dropdown-item');
+
+    // add click event for each dropdown option
+    sortOptions.forEach(option => {
+      option.addEventListener('click', event => {
+        event.preventDefault();
+        const selectedSort = option.textContent; // Get content of chosen dropdown option
+        currentSort.textContent = selectedSort; // Update text of button
+        const sortDirection = option.getAttribute("data-sort"); // Get the sort direction
+        const searchQuery = document.getElementById("mini-search-query").value; // Get search query from input
+        const categoryId = getCategoryIdFromActiveTab(); // Get categoryId from active tab
+
+        fetchProductsNPopulate(
+          categoryId !== 'null' ? categoryId : undefined,    // Replace 'null' with undefined
+          searchQuery !== 'null' ? searchQuery : undefined,    // Replace 'null' with undefined
+          "price",                                          // Sort by price
+          sortDirection === "asc" || sortDirection === "desc" ? sortDirection : undefined // Make sure sortDirection is legal
+        );
+      });
+    });
+
+
+
     document.addEventListener('DOMContentLoaded', () => {
       // Fetch all products when page loads
       fetchProductsNPopulate();
@@ -943,7 +935,7 @@
     document.querySelector('[data-bs-target="#offcanvasCart"]').addEventListener('click', fetchCartData);
     document.querySelector('.cart.text-end.d-none.d-lg-block.dropdown').addEventListener('click', fetchCartData);
 
-    // Logout when click the logout option in navbar 
+    // Logout when click the logout option in navbar
     const logoutOption = document.querySelector('a[href="#logout"]');
     logoutOption.addEventListener('click', logoutUser);
 
