@@ -160,10 +160,10 @@
         <h4 class="d-flex justify-content-between align-items-center mb-3">
           <span class="text-primary">Search</span>
         </h4>
-        <form role="search" action="index.html" method="get" class="d-flex mt-3 gap-0">
-          <input class="form-control rounded-start rounded-0 bg-light" type="email"
+        <form id="side-search-form" role="search" action="index.html" method="get" class="d-flex mt-3 gap-0">
+          <input id="side-search-query" class="form-control rounded-start rounded-0 bg-light" type="email"
             placeholder="What are you looking for?" aria-label="What are you looking for?">
-          <button class="btn btn-dark rounded-end rounded-0" type="submit">Search</button>
+          <button id="side-search-button" class="btn btn-dark rounded-end rounded-0" type="submit">Search</button>
         </form>
       </div>
     </div>
@@ -528,9 +528,9 @@
                 <div class="me-3 d-flex align-items-center">
                   <form id="mini-search-form" action="index.html" method="post" class="d-flex">
                     <input type="text" class="form-control form-control-sm bg-light" placeholder="Search"
-                      id="search-query" style="height: 38px;" />
+                      id="mini-search-query" style="height: 38px;" />
                     <!-- SVG Icon -->
-                    <button type="submit" class="btn p-0 ms-2" id="search-button">
+                    <button type="submit" class="btn p-0 ms-2" id="mini-search-button">
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
                         <path fill="currentColor"
                           d="M21.71 20.29L18 16.61A9 9 0 1 0 16.61 18l3.68 3.68a1 1 0 0 0 1.42 0a1 1 0 0 0 0-1.39ZM11 18a7 7 0 1 1 7-7a7 7 0 0 1-7 7Z" />
@@ -884,10 +884,10 @@
     });
 
     // **Logic 6: Add click event listener to mini search bar**
-    document.getElementById("search-button").addEventListener("click", function (e) {
+    document.getElementById("mini-search-button").addEventListener("click", function (e) {
       e.preventDefault();
       // Get search query from input
-      const searchQuery = document.getElementById("search-query").value;
+      const searchQuery = document.getElementById("mini-search-query").value;
       // Get categoryId from currently active nav tab
       const activeTabPane = document.querySelector(".tab-pane.show.active");
       if (!activeTabPane) {
@@ -902,6 +902,29 @@
         fetchProductsNPopulate(categoryId, searchQuery);
       } else {
         fetchProductsNPopulate(undefined, searchQuery);
+      }
+    });
+
+    // **Logic 7: Add click event listener to side search bar**
+    // Get the offcanvas search element
+    const offcanvasSearch = document.getElementById('offcanvasSearch');
+    // Initialize the offcanvas component
+    const offcanvas = new bootstrap.Offcanvas(offcanvasSearch);
+    document.getElementById("side-search-button").addEventListener("click", function (e) {
+      e.preventDefault();
+      // Get search query from input
+      const searchQuery = document.getElementById("side-search-query").value;
+
+      // Fetch products with searchQuery and categoryId as variables
+      fetchProductsNPopulate(undefined, searchQuery);
+
+      // Close the offcanvas
+      offcanvas.hide();
+
+      // Scroll the page to the nav link section
+      const navLink = document.querySelector('.nav-link.active');
+      if (navLink) {
+        navLink.scrollIntoView({ behavior: 'smooth' });
       }
     });
 

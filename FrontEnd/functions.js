@@ -24,6 +24,19 @@ function generateTabPanes() {
                 </nav>
             </div>`
     );
+    /** Clear out previous search string if there is a nav tab switch,
+     * so it won't interfere with pagination **/
+    tab.addEventListener("click", () => {
+      // Find input field for mini-search-form
+      const searchInput = document.querySelector(
+        "#mini-search-form #mini-search-query"
+      );
+
+      // Clear out input field
+      if (searchInput) {
+        searchInput.value = "";
+      }
+    });
   });
 }
 
@@ -252,12 +265,14 @@ function populatePagination(totalPages, currentPage, categoryId) {
 
   // Bind click events to pagination links
   const pageLinks = document.querySelectorAll(".page-link");
+  // Get search query from input
+  const searchQuery = document.getElementById("mini-search-query").value;
   pageLinks.forEach((link) => {
     link.addEventListener("click", (e) => {
       e.preventDefault();
       const page = parseInt(link.getAttribute("data-page"), 10);
       if (!isNaN(page)) {
-        fetchProductsNPopulate(categoryId, undefined, page);
+        fetchProductsNPopulate(categoryId, searchQuery, page);
       }
     });
   });
@@ -289,6 +304,7 @@ function fetchProductsNPopulate(
     .then((response) => {
       if (!response.ok) {
         if (response.status === 404) {
+          // Clear out product grid and pagination component
           clearProductGrid();
         }
         throw new Error(`HTTP error! Status: ${response.status}`);
