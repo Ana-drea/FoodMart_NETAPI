@@ -76,6 +76,9 @@ builder.Services.ConfigureApplicationCookie(options =>
 {
     options.Cookie.SameSite = SameSiteMode.None; // Allow cross-origin requests
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Transmit cookies only over HTTPS
+    options.Cookie.HttpOnly = true; // Prevent JavaScript access to the cookie
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(60); // Set cookie expiration time to 60 minutes
+    options.SlidingExpiration = true; // Enable sliding expiration
 });
 
 // Configure for Stripe 
@@ -93,6 +96,10 @@ builder.Services.AddScoped<PaymentService>();
 
 // Register email sender
 builder.Services.AddTransient<IEmailSender, EmailSender>();
+
+// Register PaymentService
+builder.Services.Configure<StripeOptions>(builder.Configuration.GetSection("Stripe"));
+builder.Services.AddSingleton<PaymentService>();
 
 var app = builder.Build();
 
@@ -117,9 +124,9 @@ app.UseAuthorization();
 app.MapControllers();
 
 // Map route for Stripe publishable key
-app.MapGet("config", async (IOptions<StripeOptions> options) =>
+app.MapGet("config", (PaymentService paymentService) =>
 {
-    return Results.Ok(new { publishableKey = options.Value.PublishableKey });
+    return Results.Ok(new { publishableKey = paymentService.GetPublishableKey() });
 });
 
 //// Map route for Stripe payment intent creation

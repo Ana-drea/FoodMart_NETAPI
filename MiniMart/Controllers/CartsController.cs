@@ -104,12 +104,19 @@ namespace MiniMart.Controllers
             // search if the cartItem already exists the cart
             var existingCartItem = cart.CartItems.FirstOrDefault(ci => ci.ProductId == cartItemDto.ProductId);
 
+            // Get the product for the cart item
+            var product = _context.Products.FirstOrDefault(p=>p.Id == cartItemDto.ProductId);
+
             if (existingCartItem != null)
             {
                 // update quantity if it does
                 // if frontend passed in Change, increase or decrease existingCartItem's quantity by Change
-                if (cartItemDto.Change.HasValue)
+                if (cartItemDto.Change.HasValue&& cartItemDto.Change!=0)
                 {
+                    if(existingCartItem.Quantity + cartItemDto.Change.Value>product.QuantityInStock)
+                    {
+                        return BadRequest("Product quantity exceeds quantity in stock!");
+                    }
                     existingCartItem.Quantity += cartItemDto.Change.Value;
                 }
                 // if frontend passed in Quantity, update existingCartItem's quantity
@@ -117,7 +124,7 @@ namespace MiniMart.Controllers
                 {
                     existingCartItem.Quantity = cartItemDto.Quantity.Value;
                 }
-                // if the quantity is 0, remove from cart
+                // if the quantity goes to 0, remove from cart
                 if (existingCartItem.Quantity <= 0)
                 {
                     cart.CartItems.Remove(existingCartItem);
@@ -134,8 +141,12 @@ namespace MiniMart.Controllers
                 var newCartItem = new CartItem
                 {
                     ProductId = cartItemDto.ProductId,
-                    Quantity = cartItemDto.Change.HasValue ? cartItemDto.Change.Value : cartItemDto.Quantity.Value
+                    Quantity = cartItemDto.Change.HasValue && cartItemDto.Change > 0 ? cartItemDto.Change.Value : cartItemDto.Quantity.Value
                 };
+                if (newCartItem.Quantity > product.QuantityInStock)
+                {
+                    return BadRequest("Product quantity exceeds quantity in stock!");
+                }
                 // only add new item if the final quantity is greater than 0
                 if (newCartItem.Quantity >= 0)
                 {

@@ -187,7 +187,9 @@ function populateProductGrid(products) {
               if (response.ok) {
                 return response.json();
               } else {
-                throw new Error("Failed to add to cart.");
+                return response.text().then((message) => {
+                  throw new Error(message); // throw error with the message from backend
+                });
               }
             })
             .then((data) => {
@@ -196,8 +198,8 @@ function populateProductGrid(products) {
               fetchCartData();
             })
             .catch((error) => {
-              console.error("Error adding to cart:", error);
-              alert("Failed to add product to cart. Please try again.");
+              const errorMessage = error.message.replace(/"/g, ""); // Get rid of double quotes
+              alert(`Failed to add product to cart. ${errorMessage}`);
             });
         });
       }

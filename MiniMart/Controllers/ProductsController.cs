@@ -72,10 +72,14 @@ namespace MiniMart.Controllers
             }
 
             // Pagination
-            if (pageNumber.HasValue && pageSize.HasValue)
+            if (pageNumber.HasValue && pageSize.HasValue && pageNumber > 0 && pageSize >0)
             {
                 int skip = (pageNumber.Value - 1) * pageSize.Value;
                 query = query.Skip(skip).Take(pageSize.Value);
+            }
+            else
+            {
+                query = query.Take(5);
             }
 
             var products = await query.ToListAsync();
