@@ -16,9 +16,13 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&family=Open+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap"
         rel="stylesheet">
+    <link rel="shortcut icon" href="assets/images/favicon.png" />
 </head>
 
 <body>
+    <div id="header-container"></div> <!-- header.html will be dynamically inserted -->
+
+    <script src="header.js"></script>
     <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
         <defs>
 
@@ -67,6 +71,7 @@
         crossorigin="anonymous"></script>
     <script src="js/plugins.js"></script>
     <script src="js/script.js"></script>
+    <script src="config.js"></script>
     <script>
         // Update product quantity and send request after clicking the cart +/- buttons
         function updateQuantity(productElement, { quantity = null, change = null }) {
@@ -110,7 +115,7 @@
             }
 
             // Send POST request to backend
-            fetch('https://localhost:7221/api/carts', {
+            fetch(`${window.config.apiUrl}api/carts`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -224,7 +229,7 @@
 
         // Fetch cart data and update
         function fetchCartData() {
-            fetch('https://localhost:7221/api/carts', {
+            fetch(`${window.config.apiUrl}api/carts`, {
                 headers: {
                     'Content-Type': 'application/json',
                     'accept': 'application/json'
@@ -255,7 +260,7 @@
 
         function loadStores() {
             $.ajax({
-                url: 'https://localhost:7221/api/stores',
+                url: `${window.config.apiUrl}api/stores`,
                 type: 'GET',
                 success: function (stores) {
                     var storeSelect = $('#storeId');
@@ -304,7 +309,7 @@
             };
 
             // Step 4: Send orderHistoryDto to backend and receive clientSecret & redirect URL
-            const response = await fetch("https://localhost:7221/api/orders", {
+            const response = await fetch(`${window.config.apiUrl}api/orders`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

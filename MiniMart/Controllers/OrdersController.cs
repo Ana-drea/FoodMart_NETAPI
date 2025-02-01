@@ -28,6 +28,52 @@ namespace MiniMart.Controllers
             _paymentService = paymentService;
         }
 
+        [HttpGet("{id}")]
+        public async Task<ActionResult<OrderResponseDto>> GetById([FromRoute] int id)
+        {
+            // 1. Retrieve the current user
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Unauthorized(); // Return an unauthorized error if the user is not logged in
+            }
+            var userId = user.Id;
+
+            // 2. Query the order for the user with that id, including order items and related product information
+            var order = await _context.OrderHistories
+                .Where(o => o.UserId == userId && o.Id ==id)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Product)
+                .Include(o => o.Store) // Include the Store entity to get its name
+                .FirstOrDefaultAsync();
+
+            // 3. Check if there are any orders
+            if (order == null)
+            {
+                return NotFound("The queired order doesn't exist."); // Return 404 if no orders are found
+            }
+
+            // 4. Map the order to an OrderResponseDto
+            var orderDto = new OrderResponseDto
+            {
+                Id = order.Id,
+                OrderDate = order.OrderDate,
+                TotalAmount = order.TotalAmount,
+                IsCompleted = order.IsCompleted,
+                StoreName = order.Store?.Name ?? "Unknown", // Replace StoreId with Store.Name,
+                Items = order.OrderItems.Select(oi => new OrderItemDto
+                {
+                    ProductId = oi.ProductId,
+                    ProductName = oi.Product.Name,
+                    Quantity = oi.Quantity,
+                    UnitPrice = oi.UnitPrice,
+                    TotalPrice = oi.TotalPrice
+                }).ToList()
+            };
+
+            return Ok(orderDto); // Return the DTO
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetUserOrders()
         {
@@ -35,7 +81,7 @@ namespace MiniMart.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-                return Unauthorized("User not found."); // Return an unauthorized error if the user is not logged in
+                return Unauthorized(); // Return an unauthorized error if the user is not logged in
             }
 
             var userId = user.Id;
@@ -63,14 +109,6 @@ namespace MiniMart.Controllers
                 TotalAmount = o.TotalAmount,
                 IsCompleted = o.IsCompleted,
                 StoreName = o.Store?.Name ?? "Unknown", // Replace StoreId with Store.Name,
-                Items = o.OrderItems.Select(oi => new OrderItemDto
-                {
-                    ProductId = oi.ProductId,
-                    ProductName = oi.Product.Name,
-                    Quantity = oi.Quantity,
-                    UnitPrice = oi.UnitPrice,
-                    TotalPrice = oi.TotalPrice
-                }).ToList()
             }).ToList();
 
             return Ok(orderResponseDtos); // Return the list of DTOs

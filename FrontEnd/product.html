@@ -6,9 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Products</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="shortcut icon" href="assets/images/favicon.png" />
 </head>
 
 <body>
+    <div id="header-container"></div> <!-- header.html will be dynamically inserted -->
+
+    <script src="header.js"></script>
     <div class="container mt-5">
         <h2>Products</h2>
         <table class="table">
@@ -28,7 +32,7 @@
         </table>
         <a href="addProduct.html" class="btn btn-primary btn-sm">Add Product</a>
     </div>
-
+    <script src="config.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             // Get categoryId from URL
@@ -37,8 +41,8 @@
 
             // Construct URLs for API requests w/ and  w/o categoryId
             const apiUrl = categoryId
-                ? `https://localhost:7221/api/products?categoryId=${categoryId}` // Fetch products of a certain category
-                : `https://localhost:7221/api/products`;                     // Fetch all products
+                ? `${window.config.apiUrl}api/products?categoryId=${categoryId}` // Fetch products of a certain category
+                : `${window.config.apiUrl}api/products`;                     // Fetch all products
 
             // Send GET request to API
             fetch(apiUrl, {

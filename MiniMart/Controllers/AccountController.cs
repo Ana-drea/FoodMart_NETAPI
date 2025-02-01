@@ -274,7 +274,7 @@ namespace MiniMart.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-                return Unauthorized(new { Message = "User is not logged in." });
+                return Unauthorized();
             }
 
             return Ok(new { Email = user.Email, PhoneNumber=user.PhoneNumber });

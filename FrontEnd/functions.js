@@ -171,7 +171,7 @@ function populateProductGrid(products) {
           const productId = productElement.querySelector("#productId").value;
           const quantity = quantityInput.value;
 
-          fetch("https://localhost:7221/api/carts", {
+          fetch(`${window.config.apiUrl}api/carts`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -187,9 +187,7 @@ function populateProductGrid(products) {
               if (response.ok) {
                 return response.json();
               } else {
-                return response.text().then((message) => {
-                  throw new Error(message); // throw error with the message from backend
-                });
+                throw new Error("Failed to add to cart.");
               }
             })
             .then((data) => {
@@ -198,8 +196,8 @@ function populateProductGrid(products) {
               fetchCartData();
             })
             .catch((error) => {
-              const errorMessage = error.message.replace(/"/g, ""); // Get rid of double quotes
-              alert(`Failed to add product to cart. ${errorMessage}`);
+              console.error("Error adding to cart:", error);
+              alert("Failed to add product to cart. Please try again.");
             });
         });
       }
@@ -298,7 +296,7 @@ function fetchProductsNPopulate(
   pageSize = 5
 ) {
   // Construct API URL and add query strings according to input variables
-  let apiUrl = "https://localhost:7221/api/products";
+  let apiUrl = `${window.config.apiUrl}api/products`;
 
   const queryParams = new URLSearchParams();
   if (categoryId != null && categoryId != "null") {
@@ -393,7 +391,7 @@ function updateQuantity(productElement, { quantity = null, change = null }) {
   }
 
   // Send POST request to backend
-  fetch("https://localhost:7221/api/carts", {
+  fetch(`${window.config.apiUrl}api/carts`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -525,12 +523,12 @@ function updateCart(data) {
 
 // Clear out cart and prompt for login
 function clearCartAndPromptLogin() {
-  const cartElement = document.querySelector("#offcanvasCart .offcanvas-body"); // 定位购物车内容区域
+  const cartElement = document.querySelector("#offcanvasCart .offcanvas-body"); // Locate cart section
   if (cartElement) {
     cartElement.innerHTML = `
       <div class="text-center">
         <p class="text-muted">Log in to see your saved items.</p>
-        <a href="login.html" class="btn btn-primary">Sign In</a> <!-- 替换为实际登录页面路径 -->
+        <a href="login.html" class="btn btn-primary">Sign In</a> 
       </div>
     `;
   } else {
@@ -540,7 +538,7 @@ function clearCartAndPromptLogin() {
 
 // Fetch cart data and update
 function fetchCartData() {
-  fetch("https://localhost:7221/api/carts", {
+  fetch(`${window.config.apiUrl}api/carts`, {
     headers: {
       "Content-Type": "application/json",
       accept: "application/json",
@@ -572,7 +570,7 @@ function fetchCartData() {
 
 async function logoutUser() {
   try {
-    const response = await fetch("https://localhost:7221/api/account/logout", {
+    const response = await fetch(`${window.config.apiUrl}api/account/logout`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

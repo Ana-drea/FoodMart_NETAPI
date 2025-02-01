@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", async () => {
   // Fetch the publishable key from the server
-  const { publishableKey } = await fetch("https://localhost:7221/config").then(
+  const { publishableKey } = await fetch(`${window.config.apiUrl}config`).then(
     (r) => r.json()
   );
   const stripe = Stripe(publishableKey);

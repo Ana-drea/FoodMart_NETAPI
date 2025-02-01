@@ -101,6 +101,9 @@ builder.Services.AddTransient<IEmailSender, EmailSender>();
 builder.Services.Configure<StripeOptions>(builder.Configuration.GetSection("Stripe"));
 builder.Services.AddSingleton<PaymentService>();
 
+// Register StripeWebhookService
+builder.Services.AddScoped<StripeWebhookService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -129,98 +132,13 @@ app.MapGet("config", (PaymentService paymentService) =>
     return Results.Ok(new { publishableKey = paymentService.GetPublishableKey() });
 });
 
-//// Map route for Stripe payment intent creation
-//app.MapPost("create-payment-intent", async (
-//    HttpRequest req, 
-//    PaymentIntentService service, 
-//    [FromBody] StripeRequestData requestData) =>
-//{
-//    // 1. Ensure the amount is valid
-//    if (requestData?.Amount <= 0)
-//    {
-//        return Results.BadRequest("Invalid amount.");
-//    }
-
-//    // 2. Create the payment intent with the dynamic amount
-//    var options = new PaymentIntentCreateOptions
-//    {
-//        Amount = requestData.Amount, // Use the amount from the request
-//        Currency = "cad", // You can also change this dynamically if needed
-//        AutomaticPaymentMethods = new()
-//        {
-//            Enabled = true
-//        }
-//    };
-
-//    // 3. Create the payment intent via the Stripe service
-//    var paymentIntent = await service.CreateAsync(options);
-
-//    // 4. Return the client secret as part of the response
-//    return Results.Ok(new { clientSecret = paymentIntent.ClientSecret });
-//});
 
 
 // Map route for Stripe webhook
-app.MapPost("webhook", async (HttpRequest req, IOptions<StripeOptions> options, ILogger<Program> logger, IServiceProvider serviceProvider) =>
+app.MapPost("webhook", async (HttpRequest req, StripeWebhookService webhookService) =>
 {
-    var json = await new StreamReader(req.Body).ReadToEndAsync();
-    Event stripeEvent;
-    try
-    {
-        stripeEvent = EventUtility.ConstructEvent(
-            json,
-            req.Headers["Stripe-Signature"],
-            options.Value.WebhookSecret,
-            throwOnApiVersionMismatch: false // Disable API version mismatch check
-        );
-        logger.LogInformation($"Webhook notification with type: {stripeEvent.Type} found for {stripeEvent.Id}");
-    }
-    catch (Exception e)
-    {
-        logger.LogError(e, $"Something failed => {e.Message}");
-        return Results.BadRequest();
-    }
-
-    var _context = serviceProvider.GetRequiredService<AppDbContext>();
-    if (stripeEvent.Type == Events.PaymentIntentSucceeded)
-    {
-        var paymentIntent = stripeEvent.Data.Object as Stripe.PaymentIntent;
-        if (paymentIntent != null && paymentIntent.Metadata.TryGetValue("orderId", out var orderId))
-        {
-            logger.LogInformation($"PaymentIntent ID: {paymentIntent.Id} succeeded for Order ID: {orderId}");
-            // Find the order in the database
-            int orderIdInt;
-            if (int.TryParse(orderId, out orderIdInt))
-            {
-                var orderHistory = await _context.OrderHistories.FindAsync(orderIdInt);
-                if (orderHistory != null && paymentIntent.Id == orderHistory.StripePI)
-                {
-                    // Update the order status
-                    orderHistory.IsCompleted = true;
-
-                    // Save changes to the database
-                    await _context.SaveChangesAsync();
-                    logger.LogInformation($"Order {orderId} marked as completed.");
-                }
-                else
-                {
-                    return Results.BadRequest("Payment intent ID doesn't match.");
-                }
-            }
-            else
-            {
-                return Results.BadRequest("Invalid order ID format.");
-            }
-        }
-        else
-        {
-            logger.LogWarning("Payment intent or orderId not found.");
-        }
-    }
-
-    return Results.Ok();
+    return await webhookService.HandleWebhookAsync(req);
 });
-
 
 app.Run();
 

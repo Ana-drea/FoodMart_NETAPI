@@ -78,7 +78,7 @@
   <script src="assets/js/settings.js"></script>
   <script src="assets/js/todolist.js"></script>
   <!-- endinject -->
-
+  <script src="config.js"></script>
   <script>
     document.getElementById("loginBtn").addEventListener("click", function (event) {
       // Prevent default form submission
@@ -94,7 +94,7 @@
       }
 
       // Submit login request
-      fetch("https://localhost:7221/login?useCookies=true", {
+      fetch(`${window.config.apiUrl}login?useCookies=true`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

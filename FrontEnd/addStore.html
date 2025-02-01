@@ -1,13 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Store</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <link rel="shortcut icon" href="assets/images/favicon.png" />
 </head>
+
 <body>
+    <div id="header-container"></div> <!-- header.html will be dynamically inserted -->
+
+    <script src="header.js"></script>
     <div class="container mt-5">
         <h2>Add Store</h2>
         <form id="addStoreForm">
@@ -30,10 +36,10 @@
         <div style="margin-top: 20px;"></div>
         <a href="store.html" class="btn btn-primary">Go Back</a>
     </div>
-
+    <script src="config.js"></script>
     <script>
-        $(document).ready(function() {
-            $('#addStoreForm').on('submit', function(e) {
+        $(document).ready(function () {
+            $('#addStoreForm').on('submit', function (e) {
                 e.preventDefault();
 
                 var storeData = {
@@ -44,14 +50,14 @@
                 };
 
                 $.ajax({
-                    url: 'https://localhost:7221/api/stores',
+                    url: `${window.config.apiUrl}api/stores`,
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify(storeData),
-                    success: function(response) {
+                    success: function (response) {
                         alert('Store added successfully');
                     },
-                    error: function(xhr, status, error) {
+                    error: function (xhr, status, error) {
                         alert('An error occurred: ' + error);
                     }
                 });
@@ -59,4 +65,5 @@
         });
     </script>
 </body>
+
 </html>

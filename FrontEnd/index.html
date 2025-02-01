@@ -649,10 +649,11 @@
     crossorigin="anonymous"></script>
   <script src="js/plugins.js"></script>
   <script src="js/script.js"></script>
+  <script src="config.js"></script>
   <script src="functions.js"></script>
   <script>
     // Fetch categories from the API
-    fetch('https://localhost:7221/api/categories')
+    fetch(`${window.config.apiUrl}api/categories`)
       .then(response => {
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
