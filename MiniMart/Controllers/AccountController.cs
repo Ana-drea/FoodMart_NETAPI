@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Text;
 using MiniMart.Models;
+using MiniMart.Services;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Authorization;
 using System.Text.RegularExpressions;
@@ -19,12 +20,14 @@ namespace MiniMart.Controllers
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly IEmailSender _emailSender;
+        private readonly CheckIsAdminService _checkIsAdminService;
 
-        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IEmailSender emailSender)
+        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IEmailSender emailSender, CheckIsAdminService checkIsAdminService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
+            _checkIsAdminService = checkIsAdminService;
         }
 
         [HttpPost("register")]
@@ -116,6 +119,12 @@ namespace MiniMart.Controllers
                 return NotFound(new { Message = "User not found." });
             }
 
+            // Check if the user is admin
+            if (await _checkIsAdminService.CheckIsAdminAsync(user, request.Email))
+            {
+                return BadRequest(new { Message = "Reset password is not allowed for an admin user." });
+            }
+
             // Generate a password reset token
             var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
 
@@ -178,6 +187,12 @@ namespace MiniMart.Controllers
                 return Unauthorized(new { Message = "User not logged in." });
             }
 
+            // Check if the user is admin
+            if (await _checkIsAdminService.CheckIsAdminAsync(user, user.Email))
+            {
+                return BadRequest(new { Message = "Change password is not allowed for an admin user." });
+            }
+
             // Attempt to change the password
             var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
 
@@ -205,6 +220,12 @@ namespace MiniMart.Controllers
             if (user == null)
             {
                 return NotFound(new { Message = "User not found." });
+            }
+
+            // Check if the user is admin
+            if (await _checkIsAdminService.CheckIsAdminAsync(user, user.Email))
+            {
+                return BadRequest(new { Message = "Change email is not allowed for an admin user." });
             }
 
             // Generate an email change token
@@ -276,8 +297,10 @@ namespace MiniMart.Controllers
             {
                 return Unauthorized();
             }
+            // Get user role
+            var roles = await _userManager.GetRolesAsync(user);
 
-            return Ok(new { Email = user.Email, PhoneNumber=user.PhoneNumber });
+            return Ok(new { Email = user.Email, PhoneNumber=user.PhoneNumber, Roles = roles });
         }
 
         [Authorize]
@@ -295,6 +318,12 @@ namespace MiniMart.Controllers
             if (user == null)
             {
                 return Unauthorized(new { Message = "User not found or not logged in." });
+            }
+
+            // Check if the user is admin
+            if (await _checkIsAdminService.CheckIsAdminAsync(user, user.Email))
+            {
+                return BadRequest(new { Message = "Add/change phone number is not allowed for an admin user." });
             }
 
             // Update the phone number

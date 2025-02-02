@@ -53,6 +53,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // add the identity api endpoint 
 builder.Services.AddIdentityApiEndpoints<IdentityUser>()
+    .AddRoles<IdentityRole>() // Add service for identity roles
     .AddEntityFrameworkStores<AppDbContext>();
 
 // Add CORS services to allow cross-origin requests
@@ -104,6 +105,9 @@ builder.Services.AddSingleton<PaymentService>();
 // Register StripeWebhookService
 builder.Services.AddScoped<StripeWebhookService>();
 
+// Register check admin service
+builder.Services.AddScoped<CheckIsAdminService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -139,6 +143,14 @@ app.MapPost("webhook", async (HttpRequest req, StripeWebhookService webhookServi
 {
     return await webhookService.HandleWebhookAsync(req);
 });
+
+// Create scope and seed admin account
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var configuration = app.Configuration;
+    await SeedRoles.Initialize(services, configuration);
+}
 
 app.Run();
 

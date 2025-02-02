@@ -128,7 +128,7 @@
             updateUserFields();
 
             // ** 2. Save phone number when click the Save button **
-            // Change email button
+            // Save phone button
             const savePhoneButton = document.getElementById('save-phone-button');
 
             // Add click event listener
@@ -154,11 +154,12 @@
                     credentials: 'include',
                     body: JSON.stringify({ phoneNumber: phoneNumber }),
                 })
-                    .then(response => {
+                    .then(async response => {
                         if (!response.ok) {
-                            return response.json().then(err => {
-                                throw new Error(err.message || 'Failed to save phone number.');
-                            });
+                            // If the response status is not 2xx，throw an error
+                            const errorData = await response.json();
+                            throw new Error(errorData.message || "An error occurred while changing the password.");
+
                         }
                         return response.json();
                     })
@@ -199,9 +200,11 @@
                     credentials: 'include',
                     body: JSON.stringify({ newEmail: newEmail }),
                 })
-                    .then(response => {
+                    .then(async response => {
                         if (!response.ok) {
-                            throw new Error('Failed to change email.');
+                            // If the response status is not 2xx，throw an error
+                            const errorData = await response.json();
+                            throw new Error(errorData.message || "An error occurred while changing the email.");
                         }
                         return response.json();
                     })
@@ -214,22 +217,22 @@
                     })
                     .catch(error => {
                         console.error('Error:', error);
-                        alert('An error occurred while changing the email.');
+                        alert(error.message || "An error occurred while changing the email.");
                     });
             });
 
-            // ** 4. Send request to change email when click the button **
-            // Change email button
+            // ** 4. Send request to change password when click the button **
+            // Change password button
             const changePasswordButton = document.getElementById('change-password-button');
 
             // Add click event listener
             changePasswordButton.addEventListener('click', (e) => {
                 e.preventDefault();
-                // Get the new email value from the input field
+                // Get the new password value from the input field
                 const currentPassword = document.getElementById('current-password').value;
                 const newPassword = document.getElementById('new-password').value;
 
-                // Validate the new email
+                // Validate the new password
                 if (!currentPassword || !newPassword) {
                     alert('Password cannot be empty.');
                     return;
@@ -245,9 +248,11 @@
                     credentials: 'include',
                     body: JSON.stringify({ currentPassword: currentPassword, newPassword: newPassword }),
                 })
-                    .then(response => {
+                    .then(async response => {
                         if (!response.ok) {
-                            throw new Error('Failed to change password.');
+                            // If the response status is not 2xx，throw an error
+                            const errorData = await response.json();
+                            throw new Error(errorData.message || "An error occurred while changing the password.");
                         }
                         return response.json();
                     })
@@ -257,13 +262,13 @@
                     })
                     .catch(error => {
                         console.error('Error:', error);
-                        alert('An error occurred while changing the password.');
+                        alert(error.message || "An error occurred while changing the password.");
                     });
             });
 
             // ** 4. Logout when click the logout option in navbar **
-            const logoutOption = document.querySelector('#user-nav a[href="#logout"]');
-            logoutOption.addEventListener('click', logoutUser);
+            //const logoutOption = document.querySelector('#user-nav a[href="#logout"]');
+            //logoutOption.addEventListener('click', logoutUser);
         });
     </script>
 
