@@ -653,7 +653,10 @@
   <script src="functions.js"></script>
   <script>
     // Fetch categories from the API
-    fetch(`${window.config.apiUrl}api/categories`)
+    fetch(`${window.config.apiUrl}api/categories`, {
+      method: 'GET',
+      credentials: 'include'
+    })
       .then(response => {
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);

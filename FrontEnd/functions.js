@@ -313,7 +313,10 @@ function fetchProductsNPopulate(
   }
 
   // Fetch products data from API and populate
-  fetch(apiUrl)
+  fetch(apiUrl, {
+    method: "GET",
+    credentials: "include",
+  })
     .then((response) => {
       if (!response.ok) {
         if (response.status === 404) {
@@ -591,4 +594,25 @@ async function logoutUser() {
     console.error("Error during logout:", error);
     alert("An error occurred while logging out.");
   }
+}
+
+// Check user roles, if it's not admin then deny access and redirect
+function checkUserRole(requiredRole = "Admin", redirectUrl = "index.html") {
+  $.ajax({
+    url: `${window.config.apiUrl}api/account/current-info`,
+    type: "GET",
+    xhrFields: {
+      withCredentials: true, // Ensure cookies is sent
+    },
+    success: function (response) {
+      if (!response.roles || !response.roles.includes(requiredRole)) {
+        alert("You do not have permission to access this page.");
+        window.location.href = redirectUrl; // Redirect to index page
+      }
+    },
+    error: function () {
+      alert("Failed to verify user role. Redirecting to home page.");
+      window.location.href = redirectUrl;
+    },
+  });
 }

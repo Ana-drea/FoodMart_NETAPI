@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MiniMart.Data;
@@ -43,6 +44,7 @@ namespace MiniMart.Controllers
         }
 
         // **3. Create a new store**
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public ActionResult<Store> CreateStore(Store store)
         {
@@ -62,6 +64,7 @@ namespace MiniMart.Controllers
         }
 
         // **4. Update an existing store**
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public ActionResult<Store> UpdateStore(int id, Store updatedStore)
         {
@@ -91,6 +94,7 @@ namespace MiniMart.Controllers
         }
 
         // **5. Delete a store**
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public ActionResult DeleteStore(int id)
         {

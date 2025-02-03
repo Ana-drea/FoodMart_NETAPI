@@ -20,28 +20,22 @@ namespace MiniMart.Controllers
         private readonly UserManager<IdentityUser> _userManager;
         private readonly AppDbContext _context;
         private readonly PaymentService _paymentService;
+        private readonly CheckIsAdminService _checkIsAdminService;
 
-        public OrdersController(UserManager<IdentityUser> userManager, AppDbContext context, PaymentService paymentService)
+        public OrdersController(UserManager<IdentityUser> userManager, AppDbContext context, PaymentService paymentService, CheckIsAdminService checkIsAdminService)
         {
             _userManager = userManager;
             _context = context;
             _paymentService = paymentService;
+            _checkIsAdminService = checkIsAdminService;
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<OrderResponseDto>> GetById([FromRoute] int id)
         {
-            // 1. Retrieve the current user
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return Unauthorized(); // Return an unauthorized error if the user is not logged in
-            }
-            var userId = user.Id;
-
-            // 2. Query the order for the user with that id, including order items and related product information
+            // 2. Find the order with that id, including order items and related product information
             var order = await _context.OrderHistories
-                .Where(o => o.UserId == userId && o.Id ==id)
+                .Where(o => o.Id ==id)
                 .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.Product)
                 .Include(o => o.Store) // Include the Store entity to get its name
@@ -86,14 +80,23 @@ namespace MiniMart.Controllers
 
             var userId = user.Id;
 
+            var isAdmin = await _checkIsAdminService.CheckIsAdminAsync(user, user.Email);
+
             // 2. Query all orders for the user, including order items and related product information
-            var orders = await _context.OrderHistories
-                .Where(o => o.UserId == userId)
+            IQueryable<OrderHistory> ordersQuery = _context.OrderHistories
+                .AsNoTracking() // Disable entity tracking to improve query performance
                 .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.Product)
                 .Include(o => o.Store) // Include the Store entity to get its name
-                .OrderByDescending(o => o.OrderDate) // Sort orders by order date in descending order
-                .ToListAsync();
+                .OrderByDescending(o => o.OrderDate); // Sort orders by order date in descending order
+
+            if (!isAdmin)
+            {
+                ordersQuery = ordersQuery.Where(o => o.UserId == userId);
+            }
+
+            var orders = await ordersQuery.ToListAsync();
+
 
             // 3. Check if there are any orders
             if (orders == null || !orders.Any())

@@ -37,8 +37,12 @@
         <a href="Store.html" class="btn btn-primary">Go Back</a>
     </div>
     <script src="config.js"></script>
+    <script src="functions.js"></script>
     <script>
         $(document).ready(function () {
+            // Check user roles
+            checkUserRole();
+
             // Get storeId from URL
             const urlParams = new URLSearchParams(window.location.search);
             const storeId = urlParams.get('id');
@@ -51,6 +55,9 @@
             $.ajax({
                 url: `${window.config.apiUrl}api/stores/${storeId}`,
                 type: 'GET',
+                xhrFields: {
+                    withCredentials: true // Ensure credentials (cookies, authentication headers) are sent
+                },
                 success: function (storeData) {
                     // Populate the store form
                     $('#Name').val(storeData.name);
@@ -82,6 +89,9 @@
                     type: 'PUT',  // Use PUT request for store edition
                     contentType: 'application/json',
                     data: JSON.stringify(storeData),
+                    xhrFields: {
+                        withCredentials: true // Ensure credentials (cookies, authentication headers) are sent
+                    },
                     success: function (response) {
                         alert('Store updated successfully');
                     },

@@ -117,6 +117,7 @@
             // Send POST request to backend
             fetch(`${window.config.apiUrl}api/carts`, {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
                     'accept': 'application/json'
@@ -262,6 +263,9 @@
             $.ajax({
                 url: `${window.config.apiUrl}api/stores`,
                 type: 'GET',
+                xhrFields: {
+                    withCredentials: true // Ensure credentials (cookies, authentication headers) are sent
+                },
                 success: function (stores) {
                     var storeSelect = $('#storeId');
                     storeSelect.empty();

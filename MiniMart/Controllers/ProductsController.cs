@@ -111,7 +111,7 @@ namespace MiniMart.Controllers
             };
         }
 
-
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<Product>> Create([FromBody] ProductDto productDto)
         {
@@ -146,6 +146,7 @@ namespace MiniMart.Controllers
             return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut]
         [Route("{id}")]
         public async Task<ActionResult> Update([FromRoute] int id, [FromBody] ProductDto productDto)
@@ -193,6 +194,7 @@ namespace MiniMart.Controllers
             return CreatedAtAction(nameof(GetById), new { id = prod.Id }, prod);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete([FromRoute] int id)
         {

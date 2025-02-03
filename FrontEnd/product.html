@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Products</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
     <link rel="shortcut icon" href="assets/images/favicon.png" />
 </head>
 
@@ -33,8 +34,12 @@
         <a href="addProduct.html" class="btn btn-primary btn-sm">Add Product</a>
     </div>
     <script src="config.js"></script>
+    <script src="functions.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
+            // Check user roles
+            checkUserRole();
+
             // Get categoryId from URL
             const urlParams = new URLSearchParams(window.location.search);
             const categoryId = urlParams.get('categoryId');

@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stores</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
     <link rel="shortcut icon" href="assets/images/favicon.png" />
 </head>
 
@@ -31,9 +32,16 @@
         <a href="addStore.html" class="btn btn-primary btn-sm">Add Store</a>
     </div>
     <script src="config.js"></script>
+    <script src="functions.js"></script>
     <script>
+        // Check user roles
+        checkUserRole();
+
         // Fetch stores from the API
-        fetch(`${window.config.apiUrl}api/stores`)
+        fetch(`${window.config.apiUrl}api/stores`, {
+            method: 'GET',
+            credentials: 'include'
+        })
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
@@ -75,7 +83,8 @@
                         if (confirm("Do you want to delete this store?")) {
                             // Send DELETE request to the API
                             fetch(`${window.config.apiUrl}api/stores/${storeId}`, {
-                                method: 'DELETE'
+                                method: 'DELETE',
+                                credentials: 'include'
                             })
                                 .then(response => {
                                     if (response.ok) {

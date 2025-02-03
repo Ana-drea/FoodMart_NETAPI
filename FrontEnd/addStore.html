@@ -37,8 +37,12 @@
         <a href="store.html" class="btn btn-primary">Go Back</a>
     </div>
     <script src="config.js"></script>
+    <script src="functions.js"></script>
     <script>
         $(document).ready(function () {
+            // Check user roles
+            checkUserRole();
+
             $('#addStoreForm').on('submit', function (e) {
                 e.preventDefault();
 
@@ -54,6 +58,9 @@
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify(storeData),
+                    xhrFields: {
+                        withCredentials: true // Ensure credentials (cookies, authentication headers) are sent
+                    },
                     success: function (response) {
                         alert('Store added successfully');
                     },

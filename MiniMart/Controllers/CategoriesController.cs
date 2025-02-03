@@ -4,6 +4,7 @@ using MiniMart.Data;
 using MiniMart.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MiniMart.Controllers
 {
@@ -35,6 +36,7 @@ namespace MiniMart.Controllers
             return Ok(category);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<Category>> Create([FromBody] Category category)
         {
@@ -51,6 +53,7 @@ namespace MiniMart.Controllers
             return CreatedAtAction(nameof(GetById), new { id = category.Id },category);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut]
         [Route("{id}")]
         public async Task<ActionResult> Update([FromRoute]int id, [FromBody]Category category)
@@ -82,6 +85,7 @@ namespace MiniMart.Controllers
             return CreatedAtAction(nameof(GetById), new { id = category.Id }, category);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete([FromRoute] int id)
         {

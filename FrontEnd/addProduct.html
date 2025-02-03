@@ -64,10 +64,14 @@
     <script src="js/plugins.js"></script>
     <script src="js/script.js"></script>
     <script src="config.js"></script>
+    <script src="functions.js"></script>
     <script>
         // Fetch categories and update the dropdown list
         function updateCategoriesDropdown() {
-            fetch(`${window.config.apiUrl}api/categories`)
+            fetch(`${window.config.apiUrl}api/categories`, {
+                method: 'GET',
+                credentials: 'include'
+            })
                 .then(response => response.json())
                 .then(categories => {
                     const categorySelect = document.getElementById('CategoryId');
@@ -86,7 +90,12 @@
         }
 
         // Call this function on page load to populate the dropdown initially
-        document.addEventListener('DOMContentLoaded', updateCategoriesDropdown);
+        document.addEventListener('DOMContentLoaded', function () {
+            // Check user roles
+            checkUserRole("Admin", "index.html", function () {
+                updateCategoriesDropdown();
+            });
+        });
 
         // Update the URL and thumbnail img based on the uploaded image
         const uploadElement = document.getElementById('ImageUpload');
@@ -116,6 +125,9 @@
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify(productData),
+                    xhrFields: {
+                        withCredentials: true // Ensure credentials (cookies, authentication headers) are sent
+                    },
                     success: function (response) {
                         alert('Product added successfully');
                     },

@@ -31,8 +31,12 @@
         <a href="Category.html" class="btn btn-primary">Go Back</a>
     </div>
     <script src="config.js"></script>
+    <script src="functions.js"></script>
     <script>
         $(document).ready(function () {
+            // Check user roles
+            checkUserRole();
+
             // Get categoryId from URL
             const urlParams = new URLSearchParams(window.location.search);
             const categoryId = urlParams.get('id');
@@ -45,6 +49,9 @@
             $.ajax({
                 url: `${window.config.apiUrl}api/categories/${categoryId}`,
                 type: 'GET',
+                xhrFields: {
+                    withCredentials: true // Ensure credentials (cookies, authentication headers) are sent
+                },
                 success: function (categoryData) {
                     // Prefill the form
                     $('#Name').val(categoryData.name);
@@ -69,6 +76,9 @@
                     type: 'PUT',  // Perform category edition using PUT request
                     contentType: 'application/json',
                     data: JSON.stringify(categoryData),
+                    xhrFields: {
+                        withCredentials: true // Ensure credentials (cookies, authentication headers) are sent
+                    },
                     success: function (response) {
                         alert('Category updated successfully');
                     },
