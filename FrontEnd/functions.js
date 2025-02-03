@@ -97,7 +97,7 @@ function populateProductGrid(products) {
                             product.id
                           }" title="${product.name}">
                             <img src="${
-                              product.image || "images/thumb-bananas.png"
+                              product.imageUrl || "images/thumb-bananas.png"
                             }" alt="${product.name}" class="tab-image">
                           </a>
                         </figure>

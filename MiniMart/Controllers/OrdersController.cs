@@ -147,12 +147,6 @@ namespace MiniMart.Controllers
                 return BadRequest("Cart is empty or does not exist."); // If the cart is empty or not found, return a bad request response
             }
 
-            //// 3. Generate the order number
-            //int seed = (userId.GetHashCode() + orderRequestDto.OrderDate.GetHashCode()) % int.MaxValue; // Combine UserId and OrderDate as seed
-            //var random = new Random(seed);
-            //var randomDigits = random.Next(100000, 999999); // Generate a 6-digit random number
-            //var orderNumber = $"NO{orderRequestDto.OrderDate:yyyyMMdd}-{randomDigits}"; // Format the order number as NOyyyyMMdd-XXXXXX
-
 
             // 4. Create a new OrderHistory instance
             var orderHistory = new OrderHistory

@@ -77,10 +77,12 @@ namespace MiniMart.Controllers
                 int skip = (pageNumber.Value - 1) * pageSize.Value;
                 query = query.Skip(skip).Take(pageSize.Value);
             }
-            else
-            {
-                query = query.Take(5);
-            }
+            // If no pageNumber nor pageSize (request is sent from admin), return all products
+
+            //else 
+            //{
+            //    query = query.Take(5);
+            //}
 
             var products = await query.ToListAsync();
 

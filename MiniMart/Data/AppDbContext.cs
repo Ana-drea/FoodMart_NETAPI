@@ -25,9 +25,6 @@ namespace MiniMart.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // e.g.: set a table name to single rather than plural form
-            //modelBuilder.Entity<Category>().ToTable("Category");
-
             // add constraints or relationship configurations for other models
 
             // relationship between Product and Category

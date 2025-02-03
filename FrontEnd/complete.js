@@ -21,6 +21,4 @@ document.addEventListener("DOMContentLoaded", async () => {
   } else {
     h1Element.innerText = "Payment failed or pending.";
   }
-  // const paymentIntentPre = document.getElementById("payment-intent");
-  // paymentIntentPre.innerText = JSON.stringify(paymentIntent, null, 2);
 });
