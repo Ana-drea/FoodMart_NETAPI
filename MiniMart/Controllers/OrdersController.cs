@@ -77,7 +77,6 @@ namespace MiniMart.Controllers
             {
                 return Unauthorized(); // Return an unauthorized error if the user is not logged in
             }
-
             var userId = user.Id;
 
             var isAdmin = await _checkIsAdminService.CheckIsAdminAsync(user, user.Email);

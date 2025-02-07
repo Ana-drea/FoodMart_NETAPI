@@ -18,6 +18,8 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 DotEnv.Load(options: new DotEnvOptions(probeForEnv: true));
 var builder = WebApplication.CreateBuilder(args);
 
+
+
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -107,6 +109,8 @@ builder.Services.AddScoped<StripeWebhookService>();
 
 // Register check admin service
 builder.Services.AddScoped<CheckIsAdminService>();
+
+builder.Services.AddSingleton<RsaService>();
 
 var app = builder.Build();
 

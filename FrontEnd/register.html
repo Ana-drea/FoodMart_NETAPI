@@ -82,8 +82,9 @@
 
   <!-- Add JavaScript to handle form submission -->
   <script src="config.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsencrypt/3.0.0/jsencrypt.min.js"></script>
   <script>
-    document.getElementById("submitBtn").addEventListener("click", function (event) {
+    document.getElementById("submitBtn").addEventListener("click", async function (event) {
       // Prevent default form submission
       event.preventDefault();
       const email = document.getElementById("email").value;
@@ -95,6 +96,9 @@
         return;
       }
 
+      // Load public key and encrypt password
+      const encryptedPassword = await encryptPassword(password, window.config.publicKey);
+
       // Submit to backend
       fetch(`${window.config.apiUrl}api/Account/register`, {
         method: "POST",
@@ -103,7 +107,7 @@
         },
         body: JSON.stringify({
           email: email,
-          password: password,
+          password: encryptedPassword,
         }),
       })
         .then((response) => {

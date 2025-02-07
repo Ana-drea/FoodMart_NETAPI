@@ -79,8 +79,9 @@
   <script src="assets/js/todolist.js"></script>
   <!-- endinject -->
   <script src="config.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsencrypt/3.0.0/jsencrypt.min.js"></script>
   <script>
-    document.getElementById("loginBtn").addEventListener("click", function (event) {
+    document.getElementById("loginBtn").addEventListener("click", async function (event) {
       // Prevent default form submission
       event.preventDefault();
       const email = document.getElementById("email").value;
@@ -93,8 +94,10 @@
         return;
       }
 
+      const encryptedPassword = await encryptPassword(password, window.config.publicKey);
+
       // Submit login request
-      fetch(`${window.config.apiUrl}login?useCookies=true`, {
+      fetch(`${window.config.apiUrl}api/Account/login?useCookies=true`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -103,7 +106,7 @@
         credentials: "include", // Ensure cookies are included in the request
         body: JSON.stringify({
           email: email,
-          password: password
+          password: encryptedPassword
         })
       })
         .then((response) => {

@@ -61,6 +61,7 @@
     </main>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="config.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsencrypt/3.0.0/jsencrypt.min.js"></script>
     <script>
         // Function to fetch the current user's information(email/username, phone number)
         async function loadCurrentInfo() {
@@ -226,7 +227,7 @@
             const changePasswordButton = document.getElementById('change-password-button');
 
             // Add click event listener
-            changePasswordButton.addEventListener('click', (e) => {
+            changePasswordButton.addEventListener('click', async function (e) {
                 e.preventDefault();
                 // Get the new password value from the input field
                 const currentPassword = document.getElementById('current-password').value;
@@ -237,6 +238,9 @@
                     alert('Password cannot be empty.');
                     return;
                 }
+                // Load public key and encrypt password
+                const currentEncryptedPassword = await encryptPassword(currentPassword, window.config.publicKey);
+                const newEncryptedPassword = await encryptPassword(newPassword, window.config.publicKey);
 
                 // Send POST request to the backend
                 fetch(`${window.config.apiUrl}api/account/change-password`, {
@@ -246,7 +250,7 @@
                         'accept': 'application/json'
                     },
                     credentials: 'include',
-                    body: JSON.stringify({ currentPassword: currentPassword, newPassword: newPassword }),
+                    body: JSON.stringify({ currentPassword: currentEncryptedPassword, newPassword: newEncryptedPassword }),
                 })
                     .then(async response => {
                         if (!response.ok) {

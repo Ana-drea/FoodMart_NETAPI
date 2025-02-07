@@ -10,6 +10,10 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Authorization;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authentication;
+using System.Security.Cryptography;
+using System.Configuration;
+using System.Security;
+using Azure.Core;
 
 namespace MiniMart.Controllers
 {
@@ -21,13 +25,46 @@ namespace MiniMart.Controllers
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly IEmailSender _emailSender;
         private readonly CheckIsAdminService _checkIsAdminService;
+        private readonly RsaService _rsaService;
 
-        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IEmailSender emailSender, CheckIsAdminService checkIsAdminService)
+        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IEmailSender emailSender, CheckIsAdminService checkIsAdminService, RsaService rsaService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
             _checkIsAdminService = checkIsAdminService;
+            _rsaService = rsaService;
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // RSA decrypt the password
+            var encryptedBytes = Convert.FromBase64String(request.Password);
+            var plainPassword = _rsaService.Decrypt(encryptedBytes);
+
+
+            // Call Identity sign in function
+            var result = await _signInManager.PasswordSignInAsync(
+                request.Email,
+                plainPassword,
+                true, // Whether to remember sign-in state
+                lockoutOnFailure: false
+            );
+
+            if (result.Succeeded)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
         }
 
         [HttpPost("register")]
@@ -38,6 +75,10 @@ namespace MiniMart.Controllers
                 return BadRequest(ModelState);
             }
 
+            // RSA decrypt the password
+            var encryptedBytes = Convert.FromBase64String(request.Password);
+            var plainPassword = _rsaService.Decrypt(encryptedBytes);
+
             // Create user
             var user = new IdentityUser
             {
@@ -46,7 +87,7 @@ namespace MiniMart.Controllers
             };
 
             // Save user to the database
-            var result = await _userManager.CreateAsync(user, request.Password);
+            var result = await _userManager.CreateAsync(user, plainPassword);
             if (!result.Succeeded)
             {
                 return BadRequest(result.Errors);
@@ -155,11 +196,15 @@ namespace MiniMart.Controllers
                 return NotFound(new { Message = "User not found." });
             }
 
+            // RSA decrypt the password
+            var encryptedBytes = Convert.FromBase64String(resetRequest.NewPassword);
+            var plainPassword = _rsaService.Decrypt(encryptedBytes);
+
             // Decode the token
             var decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(resetRequest.ResetCode));
 
             // Attempt to reset the password
-            var result = await _userManager.ResetPasswordAsync(user, decodedToken, resetRequest.NewPassword);
+            var result = await _userManager.ResetPasswordAsync(user, decodedToken, plainPassword);
 
             if (result.Succeeded)
             {
@@ -193,8 +238,14 @@ namespace MiniMart.Controllers
                 return BadRequest(new { Message = "Change password is not allowed for an admin user." });
             }
 
+            // RSA decrypt the passwords
+            var currenteEncryptedBytes = Convert.FromBase64String(request.CurrentPassword);
+            var currentPlainPassword = _rsaService.Decrypt(currenteEncryptedBytes);
+
+            var newEncryptedBytes = Convert.FromBase64String(request.NewPassword);
+            var newPlainPassword = _rsaService.Decrypt(newEncryptedBytes);
             // Attempt to change the password
-            var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+            var result = await _userManager.ChangePasswordAsync(user, currentPlainPassword, newPlainPassword);
 
             if (result.Succeeded)
             {
@@ -234,10 +285,6 @@ namespace MiniMart.Controllers
             // Encode the token (base64 encoding for URL-safe transmission)
             var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(changeEmailToken));
 
-            // Generate a confirmation link
-            var baseUrl = $"{Request.Scheme}://{Request.Host}"; // Build base URL from the request context
-            var confirmationLink = $"{baseUrl}/confirm-change-email?userId={user.Id}&newEmail={request.NewEmail}&token={encodedToken}";
-
             // Build email confirmation link
             var callbackUrl = Url.Action(
                 action: nameof(ConfirmChangeEmail),
@@ -249,7 +296,7 @@ namespace MiniMart.Controllers
             await _emailSender.SendEmailAsync(request.NewEmail, "Confirm your new email",
                 $"Please confirm your new email by clicking <a href='{callbackUrl}'>here</a>.");
 
-            return Ok(new { Message = "Email change confirmation link has been sent.", ConfirmationLink = confirmationLink });
+            return Ok(new { Message = "Email change confirmation link has been sent."});
         }
 
         [HttpGet("confirm-change-email")]
