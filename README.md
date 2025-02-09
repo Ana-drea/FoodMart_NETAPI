@@ -1,3 +1,5 @@
+![Architecture Diagram](https://github.com/Ana-drea/MiniMart_NETAPI/blob/main/FoodMart.drawio.svg)
+
 ### How to update database after change in models:
 
 1. Empty database and all tables
@@ -46,4 +48,10 @@ Use the following command to trigger event toward webhook
 
 ```bash
 stripe trigger payment_intent.succeeded
+```
+
+Create publish files to be deployed on Elastic Beanstalk
+
+```bash
+dotnet publish -c Release -o ./publish
 ```

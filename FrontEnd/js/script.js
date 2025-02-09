@@ -141,7 +141,7 @@
     let data = new FormData();
     data.append("file", e.target.files[0]);
 
-    await fetch("https://localhost:7221/api/images", {
+    await fetch(`${window.config.apiUrl}api/images`, {
       method: "POST",
       headers: {
         Accept: "*/*",

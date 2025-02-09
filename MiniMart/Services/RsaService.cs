@@ -15,7 +15,9 @@ namespace MiniMart.Services
             _logger = logger;
 
             // Load and cache private key
-            var privateKeyPath = configuration["SecuritySettings:PrivateKey"];
+            //var privateKeyPath = configuration["SecuritySettings:PrivateKey"];
+            var keysDirectory = Path.Combine(AppContext.BaseDirectory, "Keys");
+            var privateKeyPath = Path.Combine(keysDirectory, "frontend_private_key.pem");
             if (File.Exists(privateKeyPath))
             {
                 _privateKey = File.ReadAllText(privateKeyPath);

@@ -1,7 +1,7 @@
 // config.js
 const config = {
-  // apiUrl: "https://FoodMart-env.eba-gymnwyjm.us-east-2.elasticbeanstalk.com/",
-  apiUrl: "https://localhost:7221/",
+  apiUrl: "https://FoodMart-env.eba-gymnwyjm.us-east-2.elasticbeanstalk.com/",
+  // apiUrl: "https://localhost:7221/",
   publicKey: `-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0U57xt00937OSlt/QWbg
 sK06UPEoEftbosYRKRecPXN5EA4c3PDECVwHjPTFDaoTcGWpgZkUkrpfxpenjF0O
