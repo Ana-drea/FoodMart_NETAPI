@@ -64,7 +64,7 @@ builder.Services.AddCors(options =>
     // Add CORS policy for specific origin
     options.AddPolicy("AllowSpecificOrigin", policy =>
     {
-        policy.WithOrigins("http://127.0.0.1:5500") // Allow specific frontend origin
+        policy.WithOrigins("http://127.0.0.1:5500", "http://foodmart-frontend.s3-website.us-east-2.amazonaws.com", "https://d357jezd1xy9ze.cloudfront.net") // Allow specific frontend origin
               .AllowAnyHeader()                    // Allow any headers
               .AllowAnyMethod()                    // Allow any methods (GET, POST, etc.)
               .AllowCredentials();                 // Allow credentials (cookies, authentication headers, etc.)
@@ -140,7 +140,8 @@ app.MapGet("config", (PaymentService paymentService) =>
     return Results.Ok(new { publishableKey = paymentService.GetPublishableKey() });
 });
 
-
+// Map AWS health check endpoint
+app.MapGet("/health", () => Results.Ok("Healthy"));
 
 // Map route for Stripe webhook
 app.MapPost("webhook", async (HttpRequest req, StripeWebhookService webhookService) =>

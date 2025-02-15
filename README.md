@@ -1,4 +1,6 @@
-![Architecture Diagram](https://github.com/Ana-drea/MiniMart_NETAPI/blob/main/FoodMart.drawio.svg)
+![Architecture Diagram](https://github.com/Ana-drea/MiniMart_NETAPI/blob/main/FoodMart_2.svg)
+
+![Dual System Diagram](https://github.com/Ana-drea/MiniMart_NETAPI/blob/main/Dual_System.svg)
 
 ### How to update database after change in models:
 
