@@ -2,6 +2,11 @@
 
 ![Dual System Diagram](https://github.com/Ana-drea/MiniMart_NETAPI/blob/main/Dual_System.svg)
 
+### Credentials to login as Inventory Manager:
+
+Username: admin@dev.com
+Password: SecureP@s$w0rd
+
 ### How to update database after change in models:
 
 1. Empty database and all tables
