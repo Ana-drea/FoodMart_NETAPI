@@ -13,6 +13,10 @@ using MiniMart.Services;
 using dotenv.net;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using System.Text;
+
 
 
 DotEnv.Load(options: new DotEnvOptions(probeForEnv: true));
@@ -24,7 +28,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
-// configure swagger for bearer token
+// Configure JWT bearer token for swagger
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -40,7 +44,40 @@ builder.Services.AddSwaggerGen(options =>
     options.OperationFilter<MiniMart.Helpers.SecurityRequirementsOperationFilter>();
 });
 
+// Configure JWT bearer token for the app
+builder.Services.AddAuthentication(options =>
+{
+    // Set default authentication scheme to JWT
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+    {
+        options.RequireHttpsMetadata = false;
+        options.SaveToken = true;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"])),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true // Validate expiry time of token
+        };
 
+        // Add event listener to print Token
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                Console.WriteLine("Authentication failed: " + context.Exception.Message);
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = context =>
+            {
+                Console.WriteLine("Token validated successfully");
+                return Task.CompletedTask;
+            }
+        };
+    });
 
 builder.Services.AddControllers();
 
@@ -64,7 +101,7 @@ builder.Services.AddCors(options =>
     // Add CORS policy for specific origin
     options.AddPolicy("AllowSpecificOrigin", policy =>
     {
-        policy.WithOrigins("http://127.0.0.1:5500", "http://foodmart-frontend.s3-website.us-east-2.amazonaws.com", "https://d357jezd1xy9ze.cloudfront.net") // Allow specific frontend origin
+        policy.WithOrigins("http://127.0.0.1:5500", "http://localhost:3000") // Allow specific frontend origin
               .AllowAnyHeader()                    // Allow any headers
               .AllowAnyMethod()                    // Allow any methods (GET, POST, etc.)
               .AllowCredentials();                 // Allow credentials (cookies, authentication headers, etc.)
@@ -74,15 +111,15 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddScoped<IImageRepository, CloudinaryImageRepository>();
 
-// Configure Cookie options
-builder.Services.ConfigureApplicationCookie(options =>
-{
-    options.Cookie.SameSite = SameSiteMode.None; // Allow cross-origin requests
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Transmit cookies only over HTTPS
-    options.Cookie.HttpOnly = true; // Prevent JavaScript access to the cookie
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(60); // Set cookie expiration time to 60 minutes
-    options.SlidingExpiration = true; // Enable sliding expiration
-});
+//// Configure Cookie options
+//builder.Services.ConfigureApplicationCookie(options =>
+//{
+//    options.Cookie.SameSite = SameSiteMode.None; // Allow cross-origin requests
+//    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Transmit cookies only over HTTPS
+//    options.Cookie.HttpOnly = true; // Prevent JavaScript access to the cookie
+//    options.ExpireTimeSpan = TimeSpan.FromMinutes(60); // Set cookie expiration time to 60 minutes
+//    options.SlidingExpiration = true; // Enable sliding expiration
+//});
 
 // Configure for Stripe 
 

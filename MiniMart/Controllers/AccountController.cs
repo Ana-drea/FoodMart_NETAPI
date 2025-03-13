@@ -14,6 +14,9 @@ using System.Security.Cryptography;
 using System.Configuration;
 using System.Security;
 using Azure.Core;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace MiniMart.Controllers
 {
@@ -26,14 +29,16 @@ namespace MiniMart.Controllers
         private readonly IEmailSender _emailSender;
         private readonly CheckIsAdminService _checkIsAdminService;
         private readonly RsaService _rsaService;
+        private readonly IConfiguration _configuration;
 
-        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IEmailSender emailSender, CheckIsAdminService checkIsAdminService, RsaService rsaService)
+        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IEmailSender emailSender, CheckIsAdminService checkIsAdminService, RsaService rsaService, IConfiguration configuration)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
             _checkIsAdminService = checkIsAdminService;
             _rsaService = rsaService;
+            _configuration = configuration;
         }
 
         [HttpPost("login")]
@@ -59,11 +64,30 @@ namespace MiniMart.Controllers
 
             if (result.Succeeded)
             {
-                return Ok();
+                var user = await _userManager.FindByEmailAsync(request.Email);
+
+                // Create JWT Token
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Secret"]);
+                var tokenDescriptor = new SecurityTokenDescriptor
+                {
+                    Subject = new ClaimsIdentity(new[]
+                    {
+                        new Claim(ClaimTypes.NameIdentifier, user.Id),
+                        new Claim(ClaimTypes.Email, user.Email)
+                    }),
+                    Expires = DateTime.UtcNow.AddHours(1), // Set token expiration
+                    // Sign JWT Token
+                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                };
+                var token = tokenHandler.CreateToken(tokenDescriptor);
+                var tokenString = tokenHandler.WriteToken(token);
+                return Ok(new { token = tokenString });
             }
             else
             {
-                return BadRequest(ModelState);
+                // 401: invalid username or password
+                return Unauthorized(new { message = "Invalid credentials" }); 
             }
         }
 
@@ -215,8 +239,8 @@ namespace MiniMart.Controllers
             var errors = result.Errors.Select(e => e.Description).ToArray();
             return BadRequest(new { Message = "Password reset failed.", Errors = errors });
         }
-
-        [Authorize] // Ensure the user is logged in
+		
+		[Authorize] // Ensure the user is logged in
         [HttpPost("change-password")] // Change password when user is still logged in
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
         {
@@ -349,8 +373,8 @@ namespace MiniMart.Controllers
 
             return Ok(new { Email = user.Email, PhoneNumber=user.PhoneNumber, Roles = roles });
         }
-
-        [Authorize]
+		
+		[Authorize]
         [HttpPost("add-phone-number")]
         public async Task<IActionResult> AddPhoneNumber([FromBody] AddPhoneNumberRequest request)
         {
