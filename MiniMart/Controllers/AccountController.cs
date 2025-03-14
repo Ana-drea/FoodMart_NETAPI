@@ -341,6 +341,13 @@ namespace MiniMart.Controllers
                 return NotFound(new { Message = "User not found." });
             }
 
+            // Check if the new email is already taken
+            var existingUser = await _userManager.FindByEmailAsync(newEmail);
+            if (existingUser != null)
+            {
+                return BadRequest(new { Message = "This email is already in use." });
+            }
+			
             // Confirm email change
             var result = await _userManager.ChangeEmailAsync(user, newEmail, decodedToken);
             if (!result.Succeeded)
