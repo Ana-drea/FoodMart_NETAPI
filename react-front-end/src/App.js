@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import Login from "./Login";
+import AuthPage from "./AuthPage";
 import CategoriesPage from "./CategoriesPage";
 import AddCategoryPage from "./AddCategoryPage";
 import EditCategoryPage from "./EditCategoryPage";
@@ -23,7 +23,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={<AuthPage />} />
         <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/add-category" element={<AddCategoryPage />} />
         <Route path="/edit-category/:id" element={<EditCategoryPage />} />
