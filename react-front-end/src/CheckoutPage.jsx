@@ -13,52 +13,59 @@ const CheckoutPage = () => {
   const API_URL = "http://localhost:5134/api/carts";
   // Item data state
   const [items, setItems] = useState([]);
-  // Calculate total price
-  const [total, setTotal] = useState(0);
-
-  const fetchCartData = async () => {
-    try {
-      const response = await fetch(API_URL, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (response.status === 401) {
-        // clearCartAndPromptLogin();
-        return;
-      }
-
-      if (!response.ok) throw new Error("Failed to fetch cart data");
-
-      const data = await response.json();
-      setItems(data?.items || []);
-      setTotal(data.totalPrice);
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  };
 
   useEffect(() => {
+    const fetchCartData = async () => {
+      try {
+        const response = await fetch(API_URL, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (response.status === 401) {
+          // clearCartAndPromptLogin();
+          return;
+        }
+
+        if (!response.ok) throw new Error("Failed to fetch cart data");
+
+        const data = await response.json();
+        setItems(data?.items || []);
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    };
+
     fetchCartData();
   }, [token]);
+
+  // Calculate total price
+  const total = items.reduce(
+    (sum, item) => sum + item.productPrice * item.quantity,
+    0
+  );
 
   // Handle item quantity change
   const handleQuantityChange = async (productId, delta) => {
     // Store previous data for possible rollback
     const prevItems = items;
+
+    // Optimistic update on frontend
     setItems((prev) =>
       prev.map((item) =>
         item.productId === productId
           ? {
               ...item,
-              quantity: Math.max(0, item.quantity + delta),
+              quantity: Math.max(1, item.quantity + delta),
               // Indicates that the item is being updated
               _pending: true,
             }
           : item
       )
     );
+
+    // Update on backend
     const payload = {
       productId: productId,
       change: delta,
@@ -91,8 +98,30 @@ const CheckoutPage = () => {
   };
 
   // Delete item
-  const handleRemoveItem = (productId) => {
-    setItems(items.filter((item) => item.productId !== productId));
+  const handleRemoveItem = async (productId) => {
+    // Store previous data for possible rollback
+    const prevItems = items;
+
+    // Remove from frontend
+    setItems((prev) => prev.filter((item) => item.productId !== productId));
+
+    try {
+      const response = await fetch(`${API_URL}/${productId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update cart");
+      }
+    } catch (error) {
+      // Rollback when request failed
+      setItems(prevItems);
+      alert("Failed to update cart, please try again");
+    }
   };
 
   // Move to wish list
@@ -159,7 +188,10 @@ const CartItem = ({ item, onQuantityChange, onRemove, onMoveToWishlist }) => (
           <strong>{item.productName}</strong>
         </p>
         <div className="d-flex">
-          <MDBBtn className="btn btn-primary btn-sm me-1 mb-2">
+          <MDBBtn
+            className="btn btn-primary btn-sm me-1 mb-2"
+            onClick={() => onRemove(item.productId)}
+          >
             <FontAwesomeIcon icon={faTrash} />
           </MDBBtn>
           <MDBBtn className="btn btn-danger btn-sm mb-2">

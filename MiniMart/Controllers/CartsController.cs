@@ -25,7 +25,7 @@ namespace MiniMart.Controllers
         [HttpGet]
         public async Task<IActionResult> GetCart()
         {
-            // use User to get currently user
+            // use User to get current user
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
@@ -50,7 +50,8 @@ namespace MiniMart.Controllers
             return Ok(new
             {
                 cartId = cart.Id,
-                totalPrice = cart.CartItems.Sum(ci => ci.Product.Price * ci.Quantity), // 计算总价
+                // Total price will instead directly calculated in frontend
+                // totalPrice = cart.CartItems.Sum(ci => ci.Product.Price * ci.Quantity),
                 items = cart.CartItems.Select(ci => new
                 {
                     productId = ci.Product.Id,
@@ -159,6 +160,43 @@ namespace MiniMart.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Product added to cart successfully." });
+        }
+
+        [HttpDelete]
+        [Route("{productId}")]
+        public async Task<IActionResult> DeleteFromCart([FromRoute] int productId)
+        {
+            // Use user to get current user
+            var user = await _userManager.GetUserAsync(User);
+            if (user==null)
+            {
+                return Unauthorized();
+            }
+            
+            var userId = user.Id;
+
+            // Search for cart of that user
+            var cart = await _context.Carts
+                .Include(c=>c.CartItems)// Load cart items to cart
+                .FirstOrDefaultAsync(c=>c.UserId == userId);
+
+            // search if the cartItem already exists the cart
+            var cartItem = cart.CartItems.FirstOrDefault(ci => ci.ProductId == productId);
+            if (cartItem == null) {
+                return BadRequest("Failed to find the item in cart.");
+            }
+            // Remove item from cart
+            cart.CartItems.Remove(cartItem);
+            // remove cart if there is no cart item after update
+            if (cart.CartItems.Count == 0)
+            {
+                _context.Carts.Remove(cart);
+            }
+
+            // save the change
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Product removed from cart successfully." });
         }
     }
 
