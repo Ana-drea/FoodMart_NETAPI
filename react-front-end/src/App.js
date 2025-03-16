@@ -13,6 +13,7 @@ import EditStorePage from "./EditStorePage";
 import OrdersPage from "./OrdersPage";
 import OrderDetailPage from "./OrderDetailPage";
 import AccountSettings from "./AccountSettings";
+import CheckoutPage from "./CheckoutPage";
 
 function HomePage() {
   return <h1>Home Page</h1>;
@@ -37,6 +38,7 @@ function App() {
         <Route path="/orders" element={<OrdersPage />} />
         <Route path="/orders/:id" element={<OrderDetailPage />} />
         <Route path="/account" element={<AccountSettings />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
       </Routes>
     </Router>
   );

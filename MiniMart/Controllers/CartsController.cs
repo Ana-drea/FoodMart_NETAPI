@@ -11,7 +11,6 @@ namespace MiniMart.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class CartsController : ControllerBase
     {
         private readonly UserManager<IdentityUser> _userManager;
@@ -57,7 +56,8 @@ namespace MiniMart.Controllers
                     productId = ci.Product.Id,
                     productName = ci.Product.Name,
                     productPrice = ci.Product.Price,
-                    quantity = ci.Quantity
+                    quantity = ci.Quantity,
+                    productImage = ci.Product.ImageUrl
                 })
             });
 

@@ -127,38 +127,37 @@ const AccountSettings = () => {
     const newEncryptedPassword = await encryptPassword(newPassword, publicKey);
 
     // Send POST request to the backend
-    fetch(`${API_URL}/account/change-password`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        currentPassword: currentEncryptedPassword,
-        newPassword: newEncryptedPassword,
-      }),
-    })
-      .then(async (response) => {
-        if (!response.ok) {
-          // If the response status is not 2xx，throw an error
-          const errorData = await response.json();
-          throw new Error(
-            errorData.message ||
-              "An error occurred while changing the password."
-          );
-        }
-        return response.json();
+    try {
+      fetch(`${API_URL}/account/change-password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          currentPassword: currentEncryptedPassword,
+          newPassword: newEncryptedPassword,
+        }),
       })
-      .then((data) => {
-        // Handle successful response
-        alert(data.message || "Password changed successfully!");
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        alert(
-          error.message || "An error occurred while changing the password."
-        );
-      });
+        .then(async (response) => {
+          if (!response.ok) {
+            // If the response status is not 2xx，throw an error
+            const errorData = await response.json();
+            throw new Error(
+              errorData.message ||
+                "An error occurred while changing the password."
+            );
+          }
+          return response.json();
+        })
+        .then((data) => {
+          // Handle successful response
+          alert(data.message || "Password changed successfully!");
+        });
+    } catch (error) {
+      console.error("Error:", error);
+      alert(error.message || "An error occurred while changing the password.");
+    }
   };
 
   return (
@@ -168,7 +167,7 @@ const AccountSettings = () => {
       <Tab.Container defaultActiveKey="profile">
         <Row className="account-settings">
           <Col md={3}>
-            <Nav variant="pills" className="flex-column">
+            <Nav variant="pills" className="flex-column text-center">
               <Nav.Item>
                 <Nav.Link eventKey="profile">Profile</Nav.Link>
               </Nav.Item>
@@ -194,7 +193,7 @@ const AccountSettings = () => {
                       disabled
                     />
                   </Form.Group>
-                  <Form.Group controlId="phone-number">
+                  <Form.Group controlId="phone-number" className="mb-4">
                     <Form.Label>Phone number</Form.Label>
                     <Form.Control
                       type="tel"
@@ -202,13 +201,15 @@ const AccountSettings = () => {
                       onChange={(e) => setPhoneNumber(e.target.value)}
                     />
                   </Form.Group>
-                  <Button onClick={handleSavePhone}>Save</Button>
+                  <Button onClick={handleSavePhone} className="mb-4">
+                    Save
+                  </Button>
                 </Form>
               </Tab.Pane>
               <Tab.Pane eventKey="email">
                 <h3>Manage Email</h3>
                 <Form>
-                  <Form.Group controlId="current-email">
+                  <Form.Group controlId="current-email" className="mb-4">
                     <Form.Label>Current Email</Form.Label>
                     <Form.Control
                       type="email"
@@ -217,7 +218,7 @@ const AccountSettings = () => {
                       disabled
                     />
                   </Form.Group>
-                  <Form.Group controlId="new-email">
+                  <Form.Group controlId="new-email" className="mb-4">
                     <Form.Label>New email</Form.Label>
                     <Form.Control
                       type="email"
@@ -239,7 +240,7 @@ const AccountSettings = () => {
                       onChange={(e) => setCurrentPassword(e.target.value)}
                     />
                   </Form.Group>
-                  <Form.Group controlId="new-password">
+                  <Form.Group controlId="new-password" className="mb-4">
                     <Form.Label>New password</Form.Label>
                     <Form.Control
                       type="password"
