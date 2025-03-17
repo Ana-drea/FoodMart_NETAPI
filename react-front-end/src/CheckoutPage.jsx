@@ -7,24 +7,25 @@ import {
   faPlus,
 } from "@fortawesome/free-solid-svg-icons";
 import { MDBBtn, MDBInput } from "mdb-react-ui-kit";
+import { setSelectionRange } from "@testing-library/user-event/dist/utils";
 
 const CheckoutPage = () => {
   const token = localStorage.getItem("token");
-  const API_URL = "http://localhost:5134/api/carts";
+  const API_URL = "http://localhost:5134/api";
   // Item data state
   const [items, setItems] = useState([]);
+  const [stores, setStores] = useState([]);
 
   useEffect(() => {
     const fetchCartData = async () => {
       try {
-        const response = await fetch(API_URL, {
+        const response = await fetch(`${API_URL}/carts`, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
         });
         if (response.status === 401) {
-          // clearCartAndPromptLogin();
           return;
         }
 
@@ -37,7 +38,23 @@ const CheckoutPage = () => {
       }
     };
 
+    const fetchStoreData = async () => {
+      try {
+        const response = await fetch(`${API_URL}/stores`, {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        if (!response.ok) throw new Error("Failed to fetch stores data.");
+        const data = await response.json();
+        setStores(data || []);
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    };
+
     fetchCartData();
+    fetchStoreData();
   }, [token]);
 
   // Calculate total price
@@ -72,7 +89,7 @@ const CheckoutPage = () => {
     };
     try {
       // Send POST request to backend
-      const response = await fetch(API_URL, {
+      const response = await fetch(`${API_URL}/carts`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -106,7 +123,7 @@ const CheckoutPage = () => {
     setItems((prev) => prev.filter((item) => item.productId !== productId));
 
     try {
-      const response = await fetch(`${API_URL}/${productId}`, {
+      const response = await fetch(`${API_URL}/carts/${productId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -151,7 +168,7 @@ const CheckoutPage = () => {
               </div>
             </div>
 
-            <PickupInfo />
+            <PickupInfo stores={stores} />
           </div>
 
           <div className="col-md-4">
@@ -194,7 +211,10 @@ const CartItem = ({ item, onQuantityChange, onRemove, onMoveToWishlist }) => (
           >
             <FontAwesomeIcon icon={faTrash} />
           </MDBBtn>
-          <MDBBtn className="btn btn-danger btn-sm mb-2">
+          <MDBBtn
+            className="btn btn-danger btn-sm mb-2"
+            onClick={() => onMoveToWishlist(item.productId)}
+          >
             <FontAwesomeIcon icon={faHeart} />
           </MDBBtn>
         </div>
@@ -260,23 +280,40 @@ const OrderSummary = ({ total }) => (
           </span>
         </li>
       </ul>
-      <MDBBtn className="btn btn-primary btn-lg btn-block">
-        Go to checkout
-      </MDBBtn>
+      <MDBBtn className="btn btn-primary btn-lg btn-block">Checkout</MDBBtn>
     </div>
   </div>
 );
 
 // Pickup info component
-const PickupInfo = () => (
-  <div className="card mb-4">
-    <div className="card-body">
-      <p>
-        <strong>Expected pickup location</strong>
-      </p>
-      <p className="mb-0">12.10.2020 - 14.10.2020</p>
+const PickupInfo = ({ stores }) => {
+  const [selectedStore, setSelectedStore] = useState("");
+  return (
+    <div className="card mb-4">
+      <div className="card-header py-3">
+        <h5 className="mb-0">Pickup info</h5>
+      </div>
+      <div className="card-body">
+        <select
+          className="form-select mb-0"
+          aria-label="Select pickup store"
+          value={selectedStore}
+          onChange={(e) => setSelectedStore(e.target.value)}
+        >
+          <option value="" disabled>
+            Select pickup store
+          </option>
+          {stores
+            .filter((store) => store.isActive)
+            .map((store) => (
+              <option key={store.id} value={store.id}>
+                {store.name}
+              </option>
+            ))}
+        </select>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default CheckoutPage;
