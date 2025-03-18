@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import AuthPage from "./AuthPage";
+import HomePage from "./HomePage";
 import CategoriesPage from "./CategoriesPage";
 import AddCategoryPage from "./AddCategoryPage";
 import EditCategoryPage from "./EditCategoryPage";
@@ -14,10 +15,6 @@ import OrdersPage from "./OrdersPage";
 import OrderDetailPage from "./OrderDetailPage";
 import AccountSettings from "./AccountSettings";
 import CheckoutPage from "./CheckoutPage";
-
-function HomePage() {
-  return <h1>Home Page</h1>;
-}
 
 function App() {
   return (

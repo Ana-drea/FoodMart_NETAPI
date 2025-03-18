@@ -7,7 +7,6 @@ import {
   faPlus,
 } from "@fortawesome/free-solid-svg-icons";
 import { MDBBtn, MDBInput } from "mdb-react-ui-kit";
-import { setSelectionRange } from "@testing-library/user-event/dist/utils";
 
 const CheckoutPage = () => {
   const token = localStorage.getItem("token");
@@ -66,7 +65,7 @@ const CheckoutPage = () => {
   // Handle item quantity change
   const handleQuantityChange = async (productId, delta) => {
     // Store previous data for possible rollback
-    const prevItems = items;
+    const prevItems = [...items];
 
     // Optimistic update on frontend
     setItems((prev) =>
@@ -106,6 +105,55 @@ const CheckoutPage = () => {
       alert("Failed to update cart, please try again");
     } finally {
       // Remove loading status
+      setItems((prev) =>
+        prev.map((item) =>
+          item.productId === productId ? { ...item, _pending: false } : item
+        )
+      );
+    }
+  };
+
+  const handleInputQuantityChange = async (productId, newQuantity) => {
+    if (isNaN(newQuantity) || newQuantity < 1) return;
+    // Store previous data for possible rollback
+    const prevItems = [...items];
+
+    setItems((prev) =>
+      prev.map((item) =>
+        item.productId === productId
+          ? {
+              ...item,
+              quantity: newQuantity,
+              // Indicates that the item is being updated
+              _pending: true,
+            }
+          : item
+      )
+    );
+    // Update on backend
+    const payload = {
+      productId: productId,
+      quantity: newQuantity,
+    };
+
+    try {
+      // Send POST request to backend
+      const response = await fetch(`${API_URL}/carts`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to update cart");
+      }
+    } catch (error) {
+      // Rollback when request failed
+      setItems(prevItems);
+      alert(`${error} Failed to update cart, please try again`);
+    } finally {
       setItems((prev) =>
         prev.map((item) =>
           item.productId === productId ? { ...item, _pending: false } : item
@@ -163,6 +211,7 @@ const CheckoutPage = () => {
                     onQuantityChange={handleQuantityChange}
                     onRemove={handleRemoveItem}
                     onMoveToWishlist={handleMoveToWishlist}
+                    onInputQuantityChange={handleInputQuantityChange}
                   />
                 ))}
               </div>
@@ -181,7 +230,13 @@ const CheckoutPage = () => {
 };
 
 // Cart item component
-const CartItem = ({ item, onQuantityChange, onRemove, onMoveToWishlist }) => (
+const CartItem = ({
+  item,
+  onQuantityChange,
+  onRemove,
+  onMoveToWishlist,
+  onInputQuantityChange,
+}) => (
   <>
     <div className="row mb-4">
       <div className="col-lg-3 col-md-12 mb-4 mb-lg-0">
@@ -235,7 +290,9 @@ const CartItem = ({ item, onQuantityChange, onRemove, onMoveToWishlist }) => (
               type="number"
               className="form-control"
               value={item.quantity}
-              readOnly
+              onChange={(e) =>
+                onInputQuantityChange(item.productId, e.target.value)
+              }
             />
           </div>
 
