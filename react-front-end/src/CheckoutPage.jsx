@@ -67,6 +67,11 @@ const CheckoutPage = () => {
     // Store previous data for possible rollback
     const prevItems = [...items];
 
+    const currentItem = items.find((item) => item.productId === productId);
+    if (!currentItem) return;
+    if (Math.max(1, currentItem.quantity + delta) === currentItem.quantity)
+      return;
+
     // Optimistic update on frontend
     setItems((prev) =>
       prev.map((item) =>
@@ -113,8 +118,24 @@ const CheckoutPage = () => {
     }
   };
 
-  const handleInputQuantityChange = async (productId, newQuantity) => {
-    if (isNaN(newQuantity) || newQuantity < 1) return;
+  const handleInputChange = (productId, newQuantity) => {
+    if (newQuantity === "") {
+      setItems((prev) =>
+        prev.map((item) =>
+          item.productId === productId ? { ...item, quantity: "" } : item
+        )
+      );
+      return; // If input is null, return
+    }
+    setItems((prev) =>
+      prev.map((item) =>
+        item.productId === productId ? { ...item, quantity: newQuantity } : item
+      )
+    );
+  };
+
+  const handleInputBlur = async (productId, quantity) => {
+    if (isNaN(quantity) || quantity < 1) return;
     // Store previous data for possible rollback
     const prevItems = [...items];
 
@@ -123,7 +144,7 @@ const CheckoutPage = () => {
         item.productId === productId
           ? {
               ...item,
-              quantity: newQuantity,
+              quantity: quantity === null ? 1 : quantity,
               // Indicates that the item is being updated
               _pending: true,
             }
@@ -133,7 +154,7 @@ const CheckoutPage = () => {
     // Update on backend
     const payload = {
       productId: productId,
-      quantity: newQuantity,
+      quantity: quantity,
     };
 
     try {
@@ -211,7 +232,8 @@ const CheckoutPage = () => {
                     onQuantityChange={handleQuantityChange}
                     onRemove={handleRemoveItem}
                     onMoveToWishlist={handleMoveToWishlist}
-                    onInputQuantityChange={handleInputQuantityChange}
+                    onInputChange={handleInputChange}
+                    onInputBlur={handleInputBlur}
                   />
                 ))}
               </div>
@@ -235,7 +257,8 @@ const CartItem = ({
   onQuantityChange,
   onRemove,
   onMoveToWishlist,
-  onInputQuantityChange,
+  onInputChange,
+  onInputBlur,
 }) => (
   <>
     <div className="row mb-4">
@@ -289,10 +312,19 @@ const CartItem = ({
               label="Quantity"
               type="number"
               className="form-control"
-              value={item.quantity}
-              onChange={(e) =>
-                onInputQuantityChange(item.productId, e.target.value)
-              }
+              value={item.quantity === "" ? "" : item.quantity} // Allow input value to be null
+              onChange={(e) => {
+                onInputChange(
+                  item.productId,
+                  e.target.value === "" ? "" : parseInt(e.target.value, 10) || 0
+                );
+              }}
+              onBlur={() => onInputBlur(item.productId, item.quantity)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.target.blur();
+                }
+              }}
             />
           </div>
 
