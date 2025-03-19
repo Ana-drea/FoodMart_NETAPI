@@ -12,6 +12,9 @@ const HomePage = () => {
   const [activeCategory, setActiveCategory] = useState(-1); // Set All tab as default active tab
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
+  // State to control products and quantities to be added to cart
+  // {"1":1, "2":5}
+  const [cartQuantities, setCartQuantities] = useState({});
   const API_URL = "http://localhost:5134/api";
   const token = localStorage.getItem("token");
 
@@ -57,15 +60,28 @@ const HomePage = () => {
     fetchProductData();
   }, []);
 
-  const tabData = [
-    { id: "all", label: "All", content: "All products go here." },
-    {
-      id: "fruits",
-      label: "Fruits & Veges",
-      content: "Fruits & Vegetables content.",
-    },
-    { id: "juices", label: "Juices", content: "Juices content." },
-  ];
+  const handleInputChange = (productId, newQuantity) => {
+    if (newQuantity === "") {
+      setCartQuantities((prev) => ({
+        ...prev,
+        [productId]: "",
+      }));
+      return;
+    }
+
+    const quantity = Math.max(1, parseInt(newQuantity, 10) || 1);
+    setCartQuantities((prev) => ({
+      ...prev,
+      [productId]: quantity,
+    }));
+  };
+
+  const handleAdjustQuantity = (productId, delta) => {
+    setCartQuantities((prev) => ({
+      ...prev,
+      [productId]: Math.max(1, (prev[productId] || 1) + delta),
+    }));
+  };
 
   return (
     <div>
@@ -109,6 +125,9 @@ const HomePage = () => {
                       (product) => product.categoryId === activeCategory
                     )
               }
+              cartQuantities={cartQuantities}
+              onAdjustQuantity={handleAdjustQuantity}
+              onInputChange={handleInputChange}
             />
           </div>
         ))}
@@ -117,15 +136,31 @@ const HomePage = () => {
   );
 };
 
-const ProductGrid = ({ products }) => (
+const ProductGrid = ({
+  products,
+  cartQuantities,
+  onAdjustQuantity,
+  onInputChange,
+}) => (
   <div className="product-grid row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5">
     {products.map((product) => (
-      <ProductItem key={product.id} product={product} />
+      <ProductItem
+        key={product.id}
+        product={product}
+        cartQuantities={cartQuantities}
+        onAdjustQuantity={onAdjustQuantity}
+        onInputChange={onInputChange}
+      />
     ))}
   </div>
 );
 
-const ProductItem = ({ product }) => (
+const ProductItem = ({
+  product,
+  cartQuantities,
+  onAdjustQuantity,
+  onInputChange,
+}) => (
   <div className="col">
     <div className="product-item">
       {product.discount
@@ -165,7 +200,10 @@ const ProductItem = ({ product }) => (
       <div className="d-flex align-items-center justify-content-between">
         <div className="input-group product-qty">
           <div className="d-flex mb-4" style={{ maxWidth: "300px" }}>
-            <MDBBtn className="btn btn-primary px-3 me-2">
+            <MDBBtn
+              className="btn btn-primary px-3 me-2"
+              onClick={() => onAdjustQuantity(product.id, -1)}
+            >
               <FontAwesomeIcon icon={faMinus} />
             </MDBBtn>
 
@@ -174,11 +212,17 @@ const ProductItem = ({ product }) => (
                 label="Quantity"
                 type="number"
                 className="form-control"
-                value="1"
+                value={cartQuantities[product.id] || 1}
+                onChange={(e) =>
+                  onInputChange(product.id, parseInt(e.target.value))
+                }
               />
             </div>
 
-            <MDBBtn className="btn btn-primary px-3 ms-2">
+            <MDBBtn
+              className="btn btn-primary px-3 ms-2"
+              onClick={() => onAdjustQuantity(product.id, 1)}
+            >
               <FontAwesomeIcon icon={faPlus} />
             </MDBBtn>
           </div>

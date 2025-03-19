@@ -63,7 +63,7 @@ const CheckoutPage = () => {
   );
 
   // Handle item quantity change
-  const handleQuantityChange = async (productId, delta) => {
+  const handleAdjustQuantity = async (productId, delta) => {
     // Store previous data for possible rollback
     const prevItems = [...items];
 
@@ -119,17 +119,11 @@ const CheckoutPage = () => {
   };
 
   const handleInputChange = (productId, newQuantity) => {
-    if (newQuantity === "") {
-      setItems((prev) =>
-        prev.map((item) =>
-          item.productId === productId ? { ...item, quantity: "" } : item
-        )
-      );
-      return; // If input is null, return
-    }
     setItems((prev) =>
       prev.map((item) =>
-        item.productId === productId ? { ...item, quantity: newQuantity } : item
+        item.productId === productId
+          ? { ...item, quantity: newQuantity === "" ? "" : newQuantity }
+          : item
       )
     );
   };
@@ -229,7 +223,7 @@ const CheckoutPage = () => {
                   <CartItem
                     key={item.productId}
                     item={item}
-                    onQuantityChange={handleQuantityChange}
+                    onAdjustQuantity={handleAdjustQuantity}
                     onRemove={handleRemoveItem}
                     onMoveToWishlist={handleMoveToWishlist}
                     onInputChange={handleInputChange}
@@ -254,7 +248,7 @@ const CheckoutPage = () => {
 // Cart item component
 const CartItem = ({
   item,
-  onQuantityChange,
+  onAdjustQuantity,
   onRemove,
   onMoveToWishlist,
   onInputChange,
@@ -302,7 +296,7 @@ const CartItem = ({
         <div className="d-flex mb-4" style={{ maxWidth: "300px" }}>
           <MDBBtn
             className="btn btn-primary px-3 me-2"
-            onClick={() => onQuantityChange(item.productId, -1)}
+            onClick={() => onAdjustQuantity(item.productId, -1)}
           >
             <FontAwesomeIcon icon={faMinus} />
           </MDBBtn>
@@ -330,7 +324,7 @@ const CartItem = ({
 
           <MDBBtn
             className="btn btn-primary px-3 ms-2"
-            onClick={() => onQuantityChange(item.productId, +1)}
+            onClick={() => onAdjustQuantity(item.productId, +1)}
           >
             <FontAwesomeIcon icon={faPlus} />
           </MDBBtn>
